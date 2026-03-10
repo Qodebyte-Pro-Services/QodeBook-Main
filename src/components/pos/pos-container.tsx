@@ -1,0 +1,229 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import React, { useState } from "react";
+import POSHeader from "./pos-header";
+import ProductGrid from "./product-grid";
+import CartSidebar from "./cart-sidebar";
+import { usePOSLogic } from "@/hooks/use-pos-logic";
+import { OrderConfirmation } from "@/components/dashboard/sales/ui";
+import OrderInvoice from "@/components/dashboard/sales/invoice/OrderInvoice";
+import CustomerForm from "@/components/dashboard/customers/forms/add-customer-form";
+import OrderSettingsModal from "./order-settings-modal";
+import { AnimatePresence, motion } from "framer-motion";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import DraftsModal from "./drafts-modal";
+import { useViewTransaction } from "@/store/state/lib/pos-state-manager";
+import PosStaffSalesTable from "../dashboard/tables/pos-staff-sale-table";
+import PosStaffPendingSaleTable from "../dashboard/tables/pos-staff-pending-sale-table";
+// No icons needed for the completion modal anymore
+
+const POSContainer: React.FC = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showCustomerForm, setShowCustomerForm] = useState(false);
+    const [showOrderSettings, setShowOrderSettings] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isDraftsOpen, setIsDraftsOpen] = useState(false);
+
+    const { view } = useViewTransaction();
+
+    const {
+        businessId,
+        selectedVariants,
+        customers,
+        selectedCustomer,
+        storeType,
+        subtotal,
+        tax,
+        total,
+        discountAmount,
+        couponAmount,
+        showOrderConfirmation,
+        setShowOrderConfirmation,
+        pendingOrderData,
+        invoiceData,
+        setInvoiceData,
+        drafts,
+        pendingOrders,
+        isOnline,
+        handlers
+    } = usePOSLogic();
+
+    return (
+        <AnimatePresence mode="wait">
+            {view === "pos" ? (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key={"pos-staff-container"}
+                    transition={{ duration: 0.3, type: "spring", stiffness: 100, damping: 20 }}
+                    className="flex flex-col h-screen overflow-hidden bg-gray-50">
+                    <POSHeader
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        cartCount={selectedVariants.length}
+                        onCartToggle={() => setIsCartOpen(true)}
+                        isOnline={isOnline}
+                    />
+
+                    <div className="flex-1 flex overflow-hidden">
+                        {/* Main Content: Product Grid */}
+                        <ProductGrid
+                            businessId={businessId}
+                            searchQuery={searchQuery}
+                            onAddToCart={handlers.handleSelectedVariant}
+                        />
+
+                        {/* Sidebar: Cart & Checkout (Desktop) */}
+                        <div className="hidden lg:block">
+                            <CartSidebar
+                                items={selectedVariants as any}
+                                customers={customers}
+                                selectedCustomer={selectedCustomer}
+                                storeType={storeType}
+                                subtotal={subtotal}
+                                tax={tax}
+                                discount={discountAmount}
+                                couponAmount={couponAmount}
+                                total={total}
+                                isSettingsOpen={isSettingsOpen}
+                                setIsSettingsOpen={setIsSettingsOpen}
+                                onUpdateQuantity={handlers.handleQuantityChange}
+                                onRemoveItem={handlers.handleRemoveVariant}
+                                onSetCustomer={handlers.setSelectedCustomer}
+                                onSetStoreType={handlers.setStoreType}
+                                onCheckout={handlers.handlePayNow}
+                                onClearCart={handlers.clearCart}
+                                onAddCustomer={() => {
+                                    setShowCustomerForm(true);
+                                    setIsSettingsOpen(false);
+                                }}
+                                onSaveDraft={handlers.handleSaveDraft}
+                                onShowDrafts={() => setIsDraftsOpen(true)}
+                            />
+                        </div>
+
+                        {/* Cart Drawer (Mobile/Tablet) */}
+                        <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+                            <SheetContent side="right" className="p-0 border-none w-full sm:max-w-md">
+                                <SheetHeader>
+                                    <SheetTitle>Cart</SheetTitle>
+                                </SheetHeader>
+                                <CartSidebar
+                                    items={selectedVariants as any}
+                                    customers={customers}
+                                    selectedCustomer={selectedCustomer}
+                                    storeType={storeType}
+                                    subtotal={subtotal}
+                                    tax={tax}
+                                    discount={discountAmount}
+                                    couponAmount={couponAmount}
+                                    total={total}
+                                    isSettingsOpen={isSettingsOpen}
+                                    setIsSettingsOpen={setIsSettingsOpen}
+                                    onUpdateQuantity={handlers.handleQuantityChange}
+                                    onRemoveItem={handlers.handleRemoveVariant}
+                                    onSetCustomer={handlers.setSelectedCustomer}
+                                    onSetStoreType={handlers.setStoreType}
+                                    onCheckout={() => {
+                                        handlers.handlePayNow();
+                                        setIsCartOpen(false);
+                                    }}
+                                    onClearCart={handlers.clearCart}
+                                    onAddCustomer={() => {
+                                        setShowCustomerForm(true);
+                                        setIsSettingsOpen(false);
+                                        setIsCartOpen(false);
+                                    }}
+                                    onSaveDraft={handlers.handleSaveDraft}
+                                    onShowDrafts={() => {
+                                        setIsDraftsOpen(true);
+                                        setIsCartOpen(false);
+                                    }}
+                                />
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+
+                    {/* Modals */}
+                    <AnimatePresence>
+                        {showOrderSettings && (
+                            <OrderSettingsModal
+                                isOpen={showOrderSettings}
+                                onClose={() => setShowOrderSettings(false)}
+                                customers={customers}
+                                selectedCustomer={selectedCustomer}
+                                storeType={storeType}
+                                onSetCustomer={handlers.setSelectedCustomer}
+                                onSetStoreType={handlers.setStoreType}
+                                onAddCustomer={() => {
+                                    setShowOrderSettings(false);
+                                    setShowCustomerForm(true);
+                                }}
+                            />
+                        )}
+
+                        {showOrderConfirmation && pendingOrderData && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                                <OrderConfirmation
+                                    onClose={() => setShowOrderConfirmation(false)}
+                                    onConfirm={handlers.handleConfirmOrder}
+                                    orderData={{
+                                        ...pendingOrderData,
+                                        subtotal,
+                                        taxes: tax,
+                                        discount: discountAmount,
+                                        coupon_amount: couponAmount,
+                                        total: total,
+                                        items: pendingOrderData.items.map(item => {
+                                            const variant = selectedVariants.find(v => v.id === item.variant_id);
+                                            return {
+                                                ...item,
+                                                sku: variant?.sku,
+                                                image_url: variant?.image_url || []
+                                            };
+                                        })
+                                    } as any}
+                                />
+                            </div>
+                        )}
+
+                        {invoiceData && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[110]"
+                            >
+                                <OrderInvoice orderData={invoiceData} onClose={() => setInvoiceData(null)} />
+                            </motion.div>
+                        )}
+
+                        {showCustomerForm && (
+                            <CustomerForm
+                                business_id={`${businessId}`}
+                                handleFormClose={() => setShowCustomerForm(false)}
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    <DraftsModal
+                        isOpen={isDraftsOpen}
+                        onClose={() => setIsDraftsOpen(false)}
+                        drafts={drafts}
+                        onLoadDraft={handlers.handleDraftSelected}
+                        onDeleteDraft={handlers.handleDeleteDraft}
+                    />
+                </motion.div>
+            ) : view === "sales" ? (
+                <PosStaffSalesTable />
+            ) : (
+                <PosStaffPendingSaleTable orders={pendingOrders} />
+            )}
+        </AnimatePresence>
+    );
+};
+
+export default POSContainer;

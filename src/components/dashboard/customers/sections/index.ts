@@ -1,0 +1,1 @@
+export {default as CustomerDetail} from "./customer-details";
