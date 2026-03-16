@@ -356,7 +356,7 @@ const LoginForm = () => {
                     >
                         <motion.div className="flex flex-col gap-y-2" variants={itemVariants}>
                             <h1 className="text-3xl font-bold text-gray-800">Login</h1>
-                            <p className="text-gray-500">Login To Access Your Travelwise Account</p>
+                            <p className="text-gray-500">Login To Access Your Qodebook Account</p>
                         </motion.div>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
