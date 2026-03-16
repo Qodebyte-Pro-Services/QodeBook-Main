@@ -236,7 +236,7 @@ const handleDownload = useCallback(
             alt="Logo" 
           />
           <div className="text-xs text-center text-gray-600 mt-1">
-            {orderData.sale.branch_name || 'Gas Management System'}
+            {orderData.sale.branch_name || 'QodeBook Sass'}
           </div>
           <div className="text-[10px] text-center text-gray-500 mt-1">
             {orderData.sale.shipping_address || 'Thank you for your business!'}

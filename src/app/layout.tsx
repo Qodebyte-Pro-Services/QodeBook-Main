@@ -14,10 +14,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Gas Management System",
-    template: "%s | Gas Management System",
+    default: "QodeBook",
+    template: "%s | QodeBook",
   },
-  description: "Gas Management System",
+  description: "QodeBook",
 }
 
 export default function RootLayout({

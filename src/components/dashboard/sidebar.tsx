@@ -86,7 +86,7 @@ const DashboardSidebar = () => {
                         <div className="flex flex-col justify-between">
                             <div className="flex flex-col gap-y-5">
                                 <div className="w-full h-[80px]">
-                                    <Image width={200} height={200} className="w-full mx-auto h-full object-contain object-center aspect-square" src={`${businessImage || "/images/image 790.png"}`} alt={"Gas management logo"} />
+                                    <Image width={200} height={200} className="w-full mx-auto h-full object-contain object-center aspect-square" src={`${businessImage || "/images/image 790.png"}`} alt={"QodeBook logo"} />
                                 </div>
                                 {/* <div className="relative w-full">
                                     <input type="text" className="py-2 pl-8 pr-3 w-full border border-gray-500 rounded-sm" placeholder="Search" />

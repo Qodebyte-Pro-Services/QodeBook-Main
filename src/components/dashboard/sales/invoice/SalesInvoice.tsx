@@ -253,7 +253,7 @@ const SalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
             alt="Logo"
           />
           <div className="text-xs text-center text-gray-600 dark:text-white/50 mt-1">
-            {sale?.branch_name || 'Gas Management System'}
+            {sale?.branch_name || 'QodeBook Sass'}
           </div>
           <div className="text-[10px] text-center text-gray-500 dark:text-white/50 mt-1">
             {sale?.shipping_address || 'Thank you for your business!'}

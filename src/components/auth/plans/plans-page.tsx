@@ -110,7 +110,7 @@ const PlansPage = () => {
                         </span>
                     </motion.div>
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 tracking-tight">
-                        Gas Management{" "}
+                        QodeBook{" "}
                         <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent">
                             Pricing
                         </span>

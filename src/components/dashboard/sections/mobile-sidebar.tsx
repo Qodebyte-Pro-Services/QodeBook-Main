@@ -82,7 +82,7 @@ const MobileSideBar = ({ isOpen, onClose }: { isOpen: boolean; onClose?: () => v
                                                         height={200}
                                                         className="h-full w-auto object-contain object-left"
                                                         src={"/images/image 790.png"}
-                                                        alt={"Gas management logo"}
+                                                        alt={"QodeBook logo"}
                                                     />
                                                 </div>
                                                 <motion.button

@@ -83,7 +83,7 @@ const NotFound = () => {
                     transition={{ delay: 1 }}
                     className="text-xs font-medium uppercase tracking-[0.2em] mt-16 text-muted-foreground"
                 >
-                    Gas Management System
+                    QodeBook
                 </motion.p>
             </motion.div>
         </div>

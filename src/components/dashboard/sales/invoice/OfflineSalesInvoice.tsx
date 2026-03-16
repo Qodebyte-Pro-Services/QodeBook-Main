@@ -256,7 +256,7 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
                         alt="Logo"
                     />
                     <div className="text-xs text-center text-gray-600 mt-1">
-                        {sale?.id || "Gas Management System"}
+                        {sale?.id || "QodeBook Sass"}
                     </div>
                     <div className="text-[10px] text-center text-gray-500 mt-1">
                         Thank you for your business!

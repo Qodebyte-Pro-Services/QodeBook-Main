@@ -133,7 +133,7 @@ const EnterpriseModal = ({ open, onOpenChange }: EnterpriseModalProps) => {
                                         </div>
                                         <div>
                                             <h3 className="text-base font-bold text-white">
-                                                Gas Manager Inc.
+                                                QodeBook Sass.
                                             </h3>
                                             <p className="text-xs text-white/40">
                                                 Enterprise Solutions Division
@@ -143,7 +143,7 @@ const EnterpriseModal = ({ open, onOpenChange }: EnterpriseModalProps) => {
 
                                     <p className="text-sm text-white/50 leading-relaxed mb-1">
                                         Our enterprise team provides tailored solutions for
-                                        large-scale gas management operations. Get dedicated support,
+                                        large-scale business mangagement operations. Get dedicated support,
                                         custom integrations, and priority SLAs.
                                     </p>
                                 </div>
