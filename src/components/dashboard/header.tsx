@@ -218,7 +218,7 @@ const DashboardHeader = () => {
     return (
         <div className={`w-full py-5 px-4 flex items-center justify-between bg-white dark:bg-black ${nunito.className} antialiased`}>
             <div className="flex flex-col gap-y-[3px]">
-                <div className="text-sm font-[600]">Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 16 ? "Afternoon" : "Evening"}, {!isStaff ? "Admin" : "Staff"}</div>
+                <div className="text-sm font-[600]" suppressHydrationWarning>Good {new Date().getHours() < 12 ? "Morning" : new Date().getHours() < 16 ? "Afternoon" : "Evening"}, {!isStaff ? "Admin" : "Staff"}</div>
                 <div className="hidden sm:block text-[13px] font-[600] text-auth-basic/50 dark:text-white/50">Welcome back, nice to see you again!</div>
             </div>
             <div className="flex items-center gap-x-6">
@@ -283,9 +283,9 @@ const DashboardHeader = () => {
                                 <Image src={user_details?.profile_image} fill alt={user_details?.first_name} className="w-9 h-9 rounded-full" />
                             ) : (
                                 isStaffDecoded ? (
-                                    <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center">{(staff_decoded_details?.full_name as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
+                                    <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center" suppressHydrationWarning>{(staff_decoded_details?.full_name as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
                                 ) : (
-                                    <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center">{((user_details?.first_name + " " + user_details?.last_name) as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
+                                    <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center" suppressHydrationWarning>{((user_details?.first_name + " " + user_details?.last_name) as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
                                 )
                             )}
                         </div>
@@ -310,9 +310,9 @@ const DashboardHeader = () => {
                                             <Image src={user_details?.profile_image} fill alt={user_details?.first_name} className="w-full h-full object-contain object-center aspect-video" />
                                         ) : (
                                             isStaffDecoded ? (
-                                                <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center">{(staff_decoded_details?.full_name as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
+                                                <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center" suppressHydrationWarning>{(staff_decoded_details?.full_name as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
                                             ) : (
-                                                <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center">{((user_details?.first_name + " " + user_details?.last_name) as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
+                                                <div className="bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center" suppressHydrationWarning>{((user_details?.first_name + " " + user_details?.last_name) as string)?.match(/\b\w/g)?.join("")?.toUpperCase()}</div>
                                             )
                                         )}
                                     </div>

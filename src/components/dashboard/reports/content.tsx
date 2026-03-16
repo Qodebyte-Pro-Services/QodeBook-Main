@@ -354,7 +354,7 @@ const ReportContents = () => {
         if (financeOverviewSuccess && salesAnalyticsSuccess && expenseAnalyticsSuccess && variationAnalyticsSuccess && !salesAnalyticsError && !financeOverviewError && !expenseAnalyticsError && !variationAnalyticsError) {
             const data = [
                 {
-                    id: Date.now().toString(16) + "-" + 1,
+                    id: "overview-1",
                     title: "Total Sales",
                     amount: salesAnalytics?.totalSales,
                     isCurrency: true,
@@ -363,7 +363,7 @@ const ReportContents = () => {
                     arrowIcon: (salesAnalytics?.totalSales / (salesAnalytics?.totalSales * 100)) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 2,
+                    id: "overview-2",
                     title: "Total Expenses",
                     amount: parseFloat(expenseAnalytics?.totalExpenses?.total_approved_expense),
                     isCurrency: true,
@@ -372,7 +372,7 @@ const ReportContents = () => {
                     arrowIcon: (parseFloat(expenseAnalytics?.totalExpenses?.total_approved_expense) / (parseFloat(expenseAnalytics?.totalExpenses?.total_approved_expense) * 100)) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 3,
+                    id: "overview-3",
                     title: "Currently Inventory Values",
                     amount: variationAnalytics?.inventory_value,
                     isCurrency: true,
@@ -381,7 +381,7 @@ const ReportContents = () => {
                     arrowIcon: (salesAnalytics?.totalSales / (salesAnalytics?.totalSales * 100)) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 4,
+                    id: "overview-4",
                     title: "Gross Profit",
                     amount: financeOverviewData?.grossIncome,
                     isCurrency: true,
@@ -395,7 +395,7 @@ const ReportContents = () => {
         }
         return [
             {
-                id: Date.now().toString(16) + "-" + 1,
+                id: "overview-fallback-1",
                 title: "Total Sales",
                 amount: 0,
                 isCurrency: true,
@@ -404,7 +404,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 2,
+                id: "overview-fallback-2",
                 title: "Total Expenses",
                 amount: 0,
                 isCurrency: true,
@@ -413,7 +413,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 3,
+                id: "overview-fallback-3",
                 title: "Currently Inventory Values",
                 amount: 0,
                 isCurrency: true,
@@ -422,7 +422,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 4,
+                id: "overview-fallback-4",
                 title: "Gross Profit",
                 amount: 0,
                 isCurrency: true,
@@ -437,7 +437,7 @@ const ReportContents = () => {
         if (financeOverviewSuccess && salesAnalyticsSuccess && expenseAnalyticsSuccess && variationAnalyticsSuccess && !salesAnalyticsError && !financeOverviewError && !expenseAnalyticsError && !variationAnalyticsError) {
             const data = [
                 {
-                    id: Date.now().toString(16) + "-" + 1,
+                    id: "sales-1",
                     title: "Total Sales",
                     amount: salesAnalytics?.totalSales,
                     isCurrency: true,
@@ -446,7 +446,7 @@ const ReportContents = () => {
                     arrowIcon: (salesAnalytics?.totalSales / (salesAnalytics?.totalSales * 100)) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 2,
+                    id: "sales-2",
                     title: "Cash Sales",
                     amount: +(salesAnalytics?.paymentMethodRatio?.find((item: { method: string; total: string; count: string }) => item?.method === "cash")?.total || 0),
                     isCurrency: true,
@@ -455,7 +455,7 @@ const ReportContents = () => {
                     arrowIcon: +(salesAnalytics?.paymentMethodRatio?.find((item: { method: string; total: string; count: string }) => item?.method === "cash")?.total || 0) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 3,
+                    id: "sales-3",
                     title: "POS Sales",
                     amount: salesAnalytics?.totalSales,
                     isCurrency: true,
@@ -464,7 +464,7 @@ const ReportContents = () => {
                     arrowIcon: salesAnalytics?.totalSales <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 4,
+                    id: "sales-4",
                     title: "Bank Tranfer",
                     amount: +(salesAnalytics?.paymentMethodRatio?.find((item: { method: string; total: string; count: string }) => item?.method === "bank_transfer")?.total || 0),
                     isCurrency: true,
@@ -473,7 +473,7 @@ const ReportContents = () => {
                     arrowIcon: +(salesAnalytics?.paymentMethodRatio?.find((item: { method: string; total: string; count: string }) => item?.method === "bank_transfer")?.total || 0) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 5,
+                    id: "sales-5",
                     title: "Most Sold Product",
                     amount: +(financeOverviewData?.topProducts?.map((item: { total_sales: string }) => item?.total_sales)?.reduce((p: number, v: string) => p + +v, 0) || 0),
                     isCurrency: true,
@@ -482,7 +482,7 @@ const ReportContents = () => {
                     arrowIcon: (financeOverviewData?.topProducts?.map((item: { total_sales: string }) => item?.total_sales)?.reduce((p: number, v: string) => p + +v, 0) / (financeOverviewData?.topProducts?.map((item: { total_sales: string }) => item?.total_sales)?.reduce((p: number, v: string) => p + +v, 0) * 100)) <= 0 ? IoArrowDown : IoArrowUp
                 },
                 {
-                    id: Date.now().toString(16) + "-" + 6,
+                    id: "sales-6",
                     title: "Total Paid Staff",
                     amount: +(financeOverviewData?.totalStaffSalaryPaid || 0),
                     isCurrency: true,
@@ -495,7 +495,7 @@ const ReportContents = () => {
         }
         return [
             {
-                id: Date.now().toString(16) + "-" + 1,
+                id: "sales-fallback-1",
                 title: "Total Sales",
                 amount: 0,
                 isCurrency: true,
@@ -504,7 +504,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 2,
+                id: "sales-fallback-2",
                 title: "Cash Sales",
                 amount: 0,
                 isCurrency: true,
@@ -513,7 +513,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 3,
+                id: "sales-fallback-3",
                 title: "POS Sales",
                 amount: 0,
                 isCurrency: true,
@@ -522,7 +522,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 4,
+                id: "sales-fallback-4",
                 title: "Bank Tranfer",
                 amount: 0,
                 isCurrency: true,
@@ -531,7 +531,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 5,
+                id: "sales-fallback-5",
                 title: "Most Sold Product",
                 amount: 0,
                 isCurrency: true,
@@ -540,7 +540,7 @@ const ReportContents = () => {
                 arrowIcon: 0 ? IoArrowDown : IoArrowUp
             },
             {
-                id: Date.now().toString(16) + "-" + 6,
+                id: "sales-fallback-6",
                 title: "Total Paid Staff",
                 amount: 0,
                 isCurrency: true,
