@@ -163,7 +163,7 @@ const VerifyCodeContent: React.FC<VerifyCodeContentProps> = ({ id }) => {
                 onSuccess(data) {
                     setIsSubmitting(false);
                     toast.success(data?.message || "Verification Successful");
-                    Cookies.set("authToken", data?.token || "", {
+                    Cookies.set("authToken", data?.token, {
                         expires: 1
                     });
                     Cookies.set("authActiveUser", "Staff", {
@@ -193,6 +193,7 @@ const VerifyCodeContent: React.FC<VerifyCodeContentProps> = ({ id }) => {
                         router.push("/pos");
                         return;
                     }
+
                     router.push("/");
                 },
                 onError(err) {

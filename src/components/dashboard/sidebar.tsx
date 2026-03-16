@@ -16,7 +16,7 @@ import useSideMenuData from "@/store/data/side-menu";
 import Cookies from "js-cookie";
 import { PiShoppingBagFill } from "react-icons/pi";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import { includes } from "zod";
+import { includes, set } from "zod";
 
 const nunito_sans = Nunito_Sans({
     variable: "--font-nunito-sans",
@@ -41,7 +41,7 @@ const DashboardSidebar = () => {
 
     useEffect(() => {
         setSideMenus(sideMenuData);
-        return () => setSideMenus([]);
+        // return () => setSideMenus([]);
     }, [sideMenuData]);
 
     useEffect(() => {
@@ -68,12 +68,15 @@ const DashboardSidebar = () => {
 
     useEffect(() => {
         const required_permissions = ["view_analytics", "view_sales_overview", "view_sales_report"];
-        const staff_permissions = Cookies.get("staff_roles");
+        const staff_permissions = Cookies.get("staff_roles") || "";
         const has_required_permissions = isAvalidJson(staff_permissions) && required_permissions?.every((permission: string) => (JSON.parse(staff_permissions) as { role: string; permissions: Array<string> })?.permissions.includes(permission));
+
         if (isStaffLoggedIn) {
-            setSideMenus((prev) => [...prev?.filter((item) => (item?._path !== "/sales" && !has_required_permissions)), { id: prev?.length + 1, _name: "POS", _path: "/pos", activeIcon: AiOutlineShoppingCart, inactiveIcon: AiOutlineShoppingCart }]);
-        }
-        return () => {
+            setSideMenus([
+                ...sideMenuData?.filter((item) => item?._path !== "/sales" || has_required_permissions), 
+                { id: sideMenuData?.length + 1, _name: "POS", _path: "/pos", activeIcon: AiOutlineShoppingCart, inactiveIcon: AiOutlineShoppingCart }
+            ]);
+        } else {
             setSideMenus(sideMenuData);
         }
     }, [isStaffLoggedIn, sideMenuData]);
