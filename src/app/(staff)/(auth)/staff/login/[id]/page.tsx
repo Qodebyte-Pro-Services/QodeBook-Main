@@ -15,7 +15,7 @@ const AuthStaffLogin = async ({ params }: { params: Promise<{ id: string }> }) =
                     src="/images/image 791.png"
                     alt="Background"
                 />
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
             </div>
 
             <div className="relative z-10 w-full">

@@ -4,9 +4,9 @@ import { Nunito_Sans } from "next/font/google";
 import Image from "next/image";
 import { IoIosSearch } from "react-icons/io";
 import ColumnWrapper from "./column-wrapper";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MenuTypes } from "@/models/types/shared/project-type";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { IoLogOutOutline } from "react-icons/io5";
 import Link from "next/link";
@@ -17,6 +17,10 @@ import Cookies from "js-cookie";
 import { PiShoppingBagFill } from "react-icons/pi";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { includes, set } from "zod";
+import Router from "next/router";
+import { toast } from "sonner";
+import { useStaffAuthLogout } from "@/hooks/staff-controller";
+import { useUserLogoutAuth } from "@/hooks/useAuth";
 
 const nunito_sans = Nunito_Sans({
     variable: "--font-nunito-sans",
@@ -56,6 +60,78 @@ const DashboardSidebar = () => {
             setIsStaffLoggedIn(false);
         }
     }, []);
+
+         const router = useRouter();
+
+             const [isStaff, setIsStaff] = useState(false);
+
+               const staffId = useMemo(() => {
+                     if (typeof window === "undefined") return "";
+                     const staff_id = Cookies.get("authStaffId") || "";
+                     return staff_id;
+                 }, []);
+       const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+       const authLogoutHandler = useUserLogoutAuth();
+
+            const authStaffLogoutHandler = useStaffAuthLogout();
+            const businessId = useMemo(() => {
+                if (typeof window !== "undefined") {
+                    const storedId = sessionStorage.getItem("selectedBusinessId");
+                    return storedId ? JSON.parse(storedId) : 0;
+                }
+            }, []);
+
+      const handleAuthLogout = useCallback(async () => {
+            if (businessId <= 0) {
+                toast.info("Invalid Business Id", {
+                    description: "Kindly select a business"
+                });
+                return;
+            }
+            setIsLoggingOut(true);
+            try {
+                if (isStaff) {
+                    await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
+                        onSuccess(data) {
+                            toast.success(data?.message || "User Logged out Successfully");
+                            Cookies.remove("authToken");
+                            Cookies.remove("authActiveUser");
+                            Cookies.remove("staff_roles");
+                            Cookies.remove("staff_details");
+                            sessionStorage.removeItem("selectedBusinessId");
+                            sessionStorage.removeItem("selectedBranchId");
+                            router.push(`/staff/login/${businessId}`);
+                        },
+                        onError(err) {
+                            throw new Error(err?.message || "Failed to logout");
+                        }
+                    });
+                    return;
+                }
+                await authLogoutHandler.mutateAsync(businessId, {
+                    onSuccess(data) {
+                        toast.success(data?.message || "User Logged out Successfully");
+                        Cookies.remove("authToken");
+                        Cookies.remove("authActiveUser");
+                        sessionStorage.removeItem("selectedBusinessId");
+                        sessionStorage.removeItem("selectedBranchId");
+                        router.push("/login");
+                    },
+                    onError(err) {
+                        throw new Error(err?.message || "Failed to logout");
+                    },
+                    onSettled() {
+                        setIsLoggingOut(false);
+                    }
+                });
+            } catch (err) {
+                if (err instanceof Error) {
+                    toast.error(err?.message || "Failed to logout");
+                    return;
+                }
+                toast.error("Failed to logout");
+            }
+        }, [businessId, isStaff]);
 
     const isAvalidJson = (value: string) => {
         try {
@@ -128,7 +204,7 @@ const DashboardSidebar = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center rounded-sm gap-x-3 py-2 px-11 cursor-pointer">
+            <div onClick={handleAuthLogout} className="flex items-center rounded-sm gap-x-3 py-2 px-11 cursor-pointer">
                 <IoLogOutOutline size={20} className="text-red-500" />
                 <div className="text-base font-[500] text-red-500">Logout</div>
             </div>

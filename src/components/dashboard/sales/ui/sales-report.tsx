@@ -1,6 +1,6 @@
 "use client";
 
-import { getSalesReport } from "@/api/controllers/get/handler";
+import { getSalesReport, getStaffByBusinessId } from "@/api/controllers/get/handler";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,7 @@ type StateTypes = {
     start_date: string;
     end_date: string;
     summary: string;
+    cashier: string;
     details: string;
     payment_methods: string;
     product_breakdown: string;
@@ -55,6 +56,7 @@ const SalesReport = () => {
         end_date: "",
         summary:"",
         details:"",
+        cashier:"", 
         payment_methods:"",
         product_breakdown:"",
         page: 1,
@@ -69,7 +71,7 @@ const SalesReport = () => {
     const [includeDetails, setIncludeDetails] = useState<boolean>(true);
     const [includePaymentMethod, setIncludePaymentMethod] = useState<boolean>(true);
     const [includeProductBreakdown, setIncludeProductBreakdown] = useState<boolean>(true);
-
+    const [cashier, setCashier] = useState<string>("");
     const [reportsQueryData, setReportsQueryData] = useState<SalesReportQueryLogic[]>([]);
 
     const [isGenerated, setIsGenerated] = useState<boolean>(false);
@@ -102,6 +104,7 @@ const SalesReport = () => {
         const queryData = {
             business_id: state.business_id || businessId,
             branch_id: state.branch_id || branchId,
+            cashier: state.cashier,
             date_filter: reportType,
             start_date: startDate,
             end_date: endDate,
@@ -115,7 +118,7 @@ const SalesReport = () => {
         };
 
         const filteredQuery = Object.entries(queryData)
-            .filter(([key, value]) => value !== "" && value !== null && value !== undefined)
+            .filter(([key, value]) => value !== "" && value !== null && value !== undefined && value !== "all") 
             .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
         const searchParams = new URLSearchParams();
@@ -137,6 +140,7 @@ const SalesReport = () => {
                 branch_id: branchId,
                 date_filter: reportType,
                 start_date: startDate,
+                cashier,
                 end_date: endDate,
                 summary: includeSummary ? "true" : "false",
                 details: includeDetails ? "true" : "false",
@@ -191,6 +195,23 @@ const SalesReport = () => {
         const mapKey = e.currentTarget?.dataset?.uid || '';
         router.push(`/sales/${mapKey}`);
     }, [router]);
+
+    const {data: staffData, isSuccess: staffSuccess, isError: staffError} = useQuery({
+        queryKey: ["get-staff-by-business-id", businessId],
+        queryFn: () => getStaffByBusinessId(businessId),
+        enabled: businessId !== 0,
+        refetchOnWindowFocus: true,
+        retry: false
+    });
+    const cashiers = useMemo(() => {
+    if (staffSuccess && !staffError) {
+        return staffData?.staff || [];
+    }
+    return [];
+}, [staffData, staffSuccess, staffError]) as any[];
+
+
+    
     
     useEffect(() => {
         if (!queryStrings || !mapKey || !queryData) return;
@@ -216,64 +237,56 @@ const SalesReport = () => {
             start_date: queryData?.start_date || "",
             updatedAt: Date.now()
         };
-
-        setReportsQueryData(prev => {
-            const existingIndex = prev?.findIndex(item => item?.mapId === reportData?.mapId) ?? -1;
-            if (existingIndex >= 0) {
-                const updated = [...(prev || [])];
-                updated[existingIndex] = { ...updated[existingIndex], ...reportData };
-                return updated;
-            }
-            return [...(prev || []), reportData];
-        });
+        const newData = [reportData];
+        setReportsQueryData(newData);
     }, [queryStrings, mapKey, queryData]);
 
-    useEffect(() => {
-        if (!reportsQueryData?.length) return;
+    // useEffect(() => {
+    //     if (!reportsQueryData?.length) return;
 
-        const saveReports = async (): Promise<void> => {
-            try {
-                await updateSalesReport(businessId, reportsQueryData);
-            } catch (err) {
-                console.error("Failed to update sales reports:", err);
-                toast?.error("Failed to save sales reports");
-            }
-        };
+    //     const saveReports = async (): Promise<void> => {
+    //         try {
+    //             await updateSalesReport(businessId, reportsQueryData);
+    //         } catch (err) {
+    //             console.error("Failed to update sales reports:", err);
+    //             toast?.error("Failed to save sales reports");
+    //         }
+    //     };
 
-        const timer = setTimeout(async () => {
-            await saveReports(); 
-        }, 500);
+    //     const timer = setTimeout(async () => {
+    //         await saveReports(); 
+    //     }, 500);
         
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [reportsQueryData, updateSalesReport, businessId]);
+    //     return () => {
+    //         clearTimeout(timer);
+    //     };
+    // }, [reportsQueryData, updateSalesReport, businessId]);
 
-    useEffect(() => {
-        let isMounted = true;
-        (async () => {
-            try {
-                const data = await getSalesReportData(businessId);
-                if (!isMounted) return;
-                const reports_data = data?.reduce((prev, item) => {
-                    const existingIndex = prev?.findIndex(prevItem => prevItem?.generated_at === item?.generated_at);
-                    if (existingIndex >= 0) {
-                        const updated = [...(prev || [])];
-                        updated[existingIndex] = {...updated?.[existingIndex], ...item};
-                        return updated;
-                    }
-                    const updated = [...(prev || []), item];
-                    return updated;
-                }, [] as Array<SalesReportQueryLogic>);
-                setReportsQueryData(reports_data);
-            }catch(err) {
-                console.log(err);
-            }
-        })();
-        return () => {
-            isMounted = false;
-        }
-    }, [businessId, getSalesReportData]);
+    // useEffect(() => {
+    //     let isMounted = true;
+    //     (async () => {
+    //         try {
+    //             const data = await getSalesReportData(businessId);
+    //             if (!isMounted) return;
+    //             const reports_data = data?.reduce((prev, item) => {
+    //                 const existingIndex = prev?.findIndex(prevItem => prevItem?.generated_at === item?.generated_at);
+    //                 if (existingIndex >= 0) {
+    //                     const updated = [...(prev || [])];
+    //                     updated[existingIndex] = {...updated?.[existingIndex], ...item};
+    //                     return updated;
+    //                 }
+    //                 const updated = [...(prev || []), item];
+    //                 return updated;
+    //             }, [] as Array<SalesReportQueryLogic>);
+    //             setReportsQueryData(reports_data);
+    //         }catch(err) {
+    //             console.log(err);
+    //         }
+    //     })();
+    //     return () => {
+    //         isMounted = false;
+    //     }
+    // }, [businessId, getSalesReportData]);
 
 
     return(
@@ -321,6 +334,21 @@ const SalesReport = () => {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="flex flex-col gap-y-0.5">
+                            <CardTitle className="text-[14.5px]">Select Cashier</CardTitle>
+                            <Select value={cashier} onValueChange={(staff_id) => setCashier(staff_id)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Cashier" />
+                                </SelectTrigger>
+                                <SelectContent> 
+                                    <SelectItem value="all">All Cashier</SelectItem>
+                                    {cashiers?.map((cashier) => (
+                                        <SelectItem key={`cashier-staff-id-${cashier?.staff_id}`} value={`${cashier?.staff_id}`}>{cashier?.full_name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </CardHeader>
                     <div className="flex flex-col gap-y-0.5">
                         <CardHeader>
@@ -343,6 +371,7 @@ const SalesReport = () => {
                                 <Switch checked={includeProductBreakdown} onCheckedChange={(e) => setIncludeProductBreakdown(e)} />
                                 <div className="text-sm font-[500]">Product Breakdown</div>
                             </div>
+
                             <button 
                                 onClick={handleGenerateReport}
                                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors duration-200 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-2"

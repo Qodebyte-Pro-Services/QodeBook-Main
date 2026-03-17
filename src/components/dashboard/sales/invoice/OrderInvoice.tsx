@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState, useEffect, useMemo } from "react";
 import { IoIosShareAlt, IoMdPrint } from "react-icons/io";
 import { MdOutlineFileDownload, MdOutlineImage } from "react-icons/md";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
+import { useQuery } from "@tanstack/react-query";
+import { userBusinessHandler } from "@/api/controllers/get/handler";
 
 interface OrderInvoiceProps {
   orderData: FallbackSalesResponse;
@@ -26,6 +28,29 @@ const OrderInvoice = ({ orderData, onClose, onPrint, onDownload }: OrderInvoiceP
   const [isClient, setIsClient] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeAction, setActiveAction] = useState<string | null>(null);
+
+    const businessId = useMemo(() => {
+      if (typeof window === "undefined") return 0;
+      const selectedBusinessId = sessionStorage.getItem("selectedBusinessId");
+      return selectedBusinessId ? +selectedBusinessId : 0;
+    }, []);
+
+    const { data: businessDetails, isLoading: businessLoading, isSuccess: businessSuccess, isError: businessError } = useQuery({
+      queryKey: ["get-business-details", businessId],
+      queryFn: () => userBusinessHandler(`${businessId}`),
+      enabled: businessId > 0,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: "always",
+      retry: false
+    });
+  
+    const business_details = useMemo(() => {
+      if (businessSuccess && !businessError) {
+        console.log(businessDetails);
+        return businessDetails?.business;
+      }
+      return null
+    }, [businessDetails, businessSuccess, businessError]);
   
   useEffect(() => {
     setIsClient(true);
@@ -232,7 +257,7 @@ const handleDownload = useCallback(
             width={150} 
             height={150} 
             className="w-[110px] h-[28px] print:w-[160px] print:h-[35px] mx-auto object-contain object-center" 
-            src="/images/image 790.png" 
+            src={business_details?.logo_url || "/images/image 790.png"}
             alt="Logo" 
           />
           <div className="text-xs text-center text-gray-600 mt-1">

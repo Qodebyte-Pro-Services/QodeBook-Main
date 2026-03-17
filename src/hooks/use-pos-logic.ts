@@ -7,39 +7,39 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { useCartStorage, useOfflineCustomers, useOfflineOrders } from "@/hooks/use-localforage";
-import { 
-    cartUtils, 
-    discountCache, 
-    taxCache, 
-    couponCache, 
+import {
+    cartUtils,
+    discountCache,
+    taxCache,
+    couponCache,
     isOnline,
     networkUtils
 } from "@/lib/storage-utils";
-import { 
-    prepareOrderData, 
-    addPaymentToOrder, 
+import {
+    prepareOrderData,
+    addPaymentToOrder,
     submitOfflineOrder,
     SelectedDiscount,
     SelectedTax,
     SelectedCoupon,
     OrderSubmissionData
 } from "@/api/controllers/post/orders";
-import { 
-    CustomerResponse, 
+import {
+    CustomerResponse,
     ProductVariantResponseObject,
     FallbackSalesResponse,
     DiscountResponseObj,
     TaxesResponseObj,
     CouponResponseObj
 } from "@/models/types/shared/handlers-type";
-import { 
-    getCustomers, 
-    getProductCoupons, 
-    getProductDiscounts, 
-    getProductTaxes, 
-    getDiscountsByBusinessId, 
-    getTaxesByBusinessId, 
-    getCouponsByBusinessId 
+import {
+    getCustomers,
+    getProductCoupons,
+    getProductDiscounts,
+    getProductTaxes,
+    getDiscountsByBusinessId,
+    getTaxesByBusinessId,
+    getCouponsByBusinessId
 } from "@/api/controllers/get/handler";
 import { useUserBusinesses } from "@/hooks/useControllers";
 import { BreadcrumbLink } from "@/components/ui/breadcrumb";
@@ -91,18 +91,18 @@ export const usePOSLogic = () => {
             }
 
             const activeUser = Cookies.get("authActiveUser") || "user";
-            
-            switch(activeUser.toLowerCase()) {
+
+            switch (activeUser.toLowerCase()) {
                 case "staff": {
                     const authId = Cookies.get("authStaffId") || "";
                     setStaffId(authId)
                 }
-                break;
+                    break;
                 case "user": {
                     const userId = Cookies.get("authUserId");
                     setUserId(userId)
                 }
-                break;
+                    break;
                 default:
                     setStaffId("");
                     setUserId(0);
@@ -405,8 +405,8 @@ export const usePOSLogic = () => {
             +userId,
             +businessId,
             +branchId,
-            undefined, 
-            undefined, 
+            undefined,
+            undefined,
             selectedCoupon || undefined,
             staffId,
             "Order Created"

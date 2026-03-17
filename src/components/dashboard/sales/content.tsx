@@ -172,8 +172,8 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
     // my custom localforage hooks
     const {
         cart: selectedVariants,
-        customer: selectedCustomer,
-        storeType,
+        customer: rawCustomer,
+        storeType: rawStoreType,
         // isLoading: cartLoading,
         matchedDiscounts,
         matchedTaxes,
@@ -186,6 +186,9 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
         updateMatchedCoupons,
         clearAll: clearCart
     } = useCartStorage();
+
+    const selectedCustomer = rawCustomer || "0";
+    const storeType = rawStoreType || "walk_in";
 
     const { createOrder, pendingOrders, syncPendingOrders, loadPendingOrders } = useOfflineOrders();
     const [showPendingOrdersModal, setShowPendingOrdersModal] = useState<boolean>(false);
@@ -908,8 +911,8 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
             setIsLoadingDraft(true);
             // Restore cart state
             await setSelectedVariants(draft.cart || []);
-            if (draft.customer) await setSelectedCustomer(String(draft.customer));
-            if (draft.storeType) await setStoreType(String(draft.storeType));
+            await setSelectedCustomer(draft.customer ? String(draft.customer) : "0");
+            await setStoreType(draft.storeType ? String(draft.storeType) : "walk_in");
             if (draft.matchedDiscounts) await updateMatchedDiscounts(draft.matchedDiscounts);
             if (draft.matchedTaxes) await updateMatchedTaxes(draft.matchedTaxes);
             if (draft.matchedCoupons) await updateMatchedCoupons(draft.matchedCoupons);
