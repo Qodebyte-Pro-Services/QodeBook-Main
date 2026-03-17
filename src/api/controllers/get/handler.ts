@@ -57,6 +57,24 @@ const userBusinessHandler = async (id: string) => {
     }
 }
 
+
+const getStaffBusinessData = async (businessId: string) => {
+    try {
+        const response = await axiosInstance.get(`/api/business/staff-view`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            toast.error(err.message);
+            throw new Error(err.response?.data?.message);
+        }
+        throw new Error("An unexpected error occurred while fetching staff business data");
+    }
+}
+
 const financeOverview = async (id: string) => {
     try {
         const response = await axiosInstance.get(`/api/finance/overview?business_id=${id}`, {
@@ -1206,5 +1224,6 @@ export {
     getStaffSalariesHistory,
     getNotifications,
     getNotificationsCount,
-    getStaffActiveLogs
+    getStaffActiveLogs,
+    getStaffBusinessData
 };

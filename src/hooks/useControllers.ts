@@ -1,5 +1,5 @@
 import { deleteAttributeById, deleteBudgetHandler, deleteCategoryById, deleteCouponsById, deleteDiscountsById, deleteExpenseHandler, deleteStaffBusinessSettings, deleteStaffCreds, deleteStaffDoc, deleteStaffShift, deleteTaxesById, deleteUserData } from "@/api/controllers/delete/handler";
-import {  getProductAttributes, getBusinessBranches } from "@/api/controllers/get/handler";
+import {  getProductAttributes, getBusinessBranches, getStaffBusinessData } from "@/api/controllers/get/handler";
 import { userBusinessHandler } from "@/api/controllers/get/handler";
 import { userBusinessesHandler } from "@/api/controllers/get/handler";
 import { getUserproofile } from "@/api/controllers/get/user-data";
@@ -39,6 +39,18 @@ const useUserBusinesses = () => {
     });
 
     return {data, isError, error, isLoading, isSuccess};
+}
+
+
+const useStaffBusinessData = (businessId: string) => {
+    const {data, isError, error, isLoading, isSuccess} = useQuery({
+        queryKey: ["staff-business-data", businessId],
+        queryFn: () => getStaffBusinessData(businessId),
+        enabled: !!businessId,
+        refetchOnWindowFocus: false,
+    });
+
+    return {staffdata: data , isStaffError: isError, error, isLoading, isStaffSuccess: isSuccess};
 }
 
 const useBusinessBranches = (businessId: string) => {
@@ -248,5 +260,6 @@ export {
     useUpdateBudgetStatusHandler,
     useBusinessBranches,
     useCreateBusinessBranch,
-    useCreateBusiness
+    useCreateBusiness,
+    useStaffBusinessData
 };

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { IoLogOutOutline } from "react-icons/io5";
 import Link from "next/link";
 import { useCustomStyles } from "@/hooks";
-import { useUserBusinesses } from "@/hooks/useControllers";
+import { useStaffBusinessData, useUserBusinesses } from "@/hooks/useControllers";
 import useSideMenuData from "@/store/data/side-menu";
 import Cookies from "js-cookie";
 import { PiShoppingBagFill } from "react-icons/pi";
@@ -35,10 +35,27 @@ const DashboardSidebar = () => {
     const [isStaffLoggedIn, setIsStaffLoggedIn] = useState<boolean>(false);
 
     const { data, isSuccess, isError } = useUserBusinesses();
+      const businessId = useMemo(() => {
+        if (typeof window !== "undefined") {
+            const storedId = sessionStorage.getItem("selectedBusinessId");
+            console.log('stored business id', storedId);
+            return storedId ? JSON.parse(storedId) : 0;
+        }
+    }, []);
+    const { staffdata, isStaffSuccess,  isStaffError } = useStaffBusinessData(businessId?.toString() || "");
     const { sideMenuData } = useSideMenuData();
 
-    const businessImage = useMemo(() => {
-        if (isSuccess && !isError) {
+ const businessStaffImage = useMemo(() => {
+    if (isStaffSuccess && !isStaffError) {
+        console.log('business staff image', staffdata?.business?.logo_url);
+        return staffdata?.business?.logo_url;
+    }
+}, [isStaffSuccess, isStaffError, staffdata]);
+
+
+       const businessImage = useMemo(() => {
+        if (isSuccess   && !isError) {
+            console.log('business owner image', data?.businesses?.[0]?.logo_url);
             return data?.businesses?.[0]?.logo_url;
         }
     }, [isSuccess, isError, data]);
@@ -61,77 +78,80 @@ const DashboardSidebar = () => {
         }
     }, []);
 
-         const router = useRouter();
+    const router = useRouter();
 
-             const [isStaff, setIsStaff] = useState(false);
+     const isStaff = useMemo(() => {
+           if (typeof window === "undefined") return false;
+           const activeStaffId = Cookies.get("authStaffId") ? Cookies.get("authStaffId") : "";
+           return activeStaffId !== "";
+       }, []);
+   
+       const staffId = useMemo(() => {
+           if (typeof window === "undefined") return "";
+           const activeStaffId = Cookies.get("authStaffId") ? Cookies.get("authStaffId") : "";
+           return activeStaffId;
+       }, []);
 
-               const staffId = useMemo(() => {
-                     if (typeof window === "undefined") return "";
-                     const staff_id = Cookies.get("authStaffId") || "";
-                     return staff_id;
-                 }, []);
-       const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
-       const authLogoutHandler = useUserLogoutAuth();
+   
+    const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+    const authLogoutHandler = useUserLogoutAuth();
 
-            const authStaffLogoutHandler = useStaffAuthLogout();
-            const businessId = useMemo(() => {
-                if (typeof window !== "undefined") {
-                    const storedId = sessionStorage.getItem("selectedBusinessId");
-                    return storedId ? JSON.parse(storedId) : 0;
-                }
-            }, []);
+    const authStaffLogoutHandler = useStaffAuthLogout();
+  
 
-      const handleAuthLogout = useCallback(async () => {
-            if (businessId <= 0) {
-                toast.info("Invalid Business Id", {
-                    description: "Kindly select a business"
-                });
-                return;
-            }
-            setIsLoggingOut(true);
-            try {
-                if (isStaff) {
-                    await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
-                        onSuccess(data) {
-                            toast.success(data?.message || "User Logged out Successfully");
-                            Cookies.remove("authToken");
-                            Cookies.remove("authActiveUser");
-                            Cookies.remove("staff_roles");
-                            Cookies.remove("staff_details");
-                            sessionStorage.removeItem("selectedBusinessId");
-                            sessionStorage.removeItem("selectedBranchId");
-                            router.push(`/staff/login/${businessId}`);
-                        },
-                        onError(err) {
-                            throw new Error(err?.message || "Failed to logout");
-                        }
-                    });
-                    return;
-                }
-                await authLogoutHandler.mutateAsync(businessId, {
+    const handleAuthLogout = useCallback(async () => {
+        if (businessId <= 0) {
+            toast.info("Invalid Business Id", {
+                description: "Kindly select a business"
+            });
+            return;
+        }
+        setIsLoggingOut(true);
+        try {
+            if (isStaff) {
+
+                await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
                     onSuccess(data) {
                         toast.success(data?.message || "User Logged out Successfully");
                         Cookies.remove("authToken");
                         Cookies.remove("authActiveUser");
+                        Cookies.remove("staff_roles");
+                        Cookies.remove("staff_details");
                         sessionStorage.removeItem("selectedBusinessId");
                         sessionStorage.removeItem("selectedBranchId");
-                        router.push("/login");
+                        router.push(`/staff/login/${businessId}`);
                     },
                     onError(err) {
                         throw new Error(err?.message || "Failed to logout");
-                    },
-                    onSettled() {
-                        setIsLoggingOut(false);
                     }
                 });
-            } catch (err) {
-                if (err instanceof Error) {
-                    toast.error(err?.message || "Failed to logout");
-                    return;
-                }
-                toast.error("Failed to logout");
+                return;
             }
-        }, [businessId, isStaff]);
+            await authLogoutHandler.mutateAsync(businessId, {
+                onSuccess(data) {
+
+                    toast.success(data?.message || "User Logged out Successfully");
+                    Cookies.remove("authToken");
+                    Cookies.remove("authActiveUser");
+                    sessionStorage.removeItem("selectedBusinessId");
+                    sessionStorage.removeItem("selectedBranchId");
+                    router.push("/login");
+                },
+                onError(err) {
+                    throw new Error(err?.message || "Failed to logout");
+                },
+                onSettled() {
+                    setIsLoggingOut(false);
+                }
+            });
+        } catch (err) {
+            if (err instanceof Error) {
+                toast.error(err?.message || "Failed to logout");
+                return;
+            }
+            toast.error("Failed to logout");
+        }
+    }, [businessId, isStaff]);
 
     const isAvalidJson = (value: string) => {
         try {
@@ -149,7 +169,7 @@ const DashboardSidebar = () => {
 
         if (isStaffLoggedIn) {
             setSideMenus([
-                ...sideMenuData?.filter((item) => item?._path !== "/sales" || has_required_permissions), 
+                ...sideMenuData?.filter((item) => item?._path !== "/sales" || has_required_permissions),
                 { id: sideMenuData?.length + 1, _name: "POS", _path: "/pos", activeIcon: AiOutlineShoppingCart, inactiveIcon: AiOutlineShoppingCart }
             ]);
         } else {
@@ -164,9 +184,15 @@ const DashboardSidebar = () => {
                     <div className="py-2 px-8">
                         <div className="flex flex-col justify-between">
                             <div className="flex flex-col gap-y-5">
-                                <div className="w-full h-[80px]">
-                                    <Image width={200} height={200} className="w-full mx-auto h-full object-contain object-center aspect-square" src={`${businessImage || "/images/image 790.png"}`} alt={"QodeBook logo"} />
-                                </div>
+                              <div className="w-full h-[80px]">
+                                <Image 
+                                    width={200} 
+                                    height={200} 
+                                    className="w-full mx-auto h-full object-contain object-center aspect-square" 
+                                    src={`${(isStaff ? businessStaffImage : businessImage) || "/images/image 790.png"}`} 
+                                    alt={"QodeBook logo"} 
+                                />
+                            </div>
                                 {/* <div className="relative w-full">
                                     <input type="text" className="py-2 pl-8 pr-3 w-full border border-gray-500 rounded-sm" placeholder="Search" />
                                     <IoIosSearch size={20} className="absolute top-2/4 text-auth-basic/70 -translate-y-2/4 left-[2%] cursor-pointer" />
