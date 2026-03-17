@@ -41,8 +41,8 @@ const contactInfo = [
     {
         icon: Mail,
         label: "Email",
-        value: "enterprise@gasmanager.com",
-        href: "mailto:enterprise@gasmanager.com",
+        value: "enterprise@qodebook.com",
+        href: "mailto:enterprise@qodebook.com",
         color: "from-purple-500 to-pink-500",
     },
     {

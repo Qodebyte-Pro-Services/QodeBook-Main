@@ -145,7 +145,7 @@ const VerifyOtpLoginForm = () => {
         <div className="w-[95%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[40%] mx-auto bg-white py-8 rounded-md mt-7 lg:mt-0">
             <div className="w-full flex flex-col gap-y-6">
                 <div className="w-full h-[70px]">
-                    <Image width={500} height={500} className="w-[60%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Gas Station Logo" />
+                    <Image width={500} height={500} className="w-[60%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Qodebook Logo" />
                 </div>
                 <div className="max-h-[65dvh] overflow-y-auto overflow-x-hidden px-10" style={customScrollbar}>
                     <div className="w-full h-fit flex flex-col gap-y-6">

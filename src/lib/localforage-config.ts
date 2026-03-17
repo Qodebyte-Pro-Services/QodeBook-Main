@@ -1,55 +1,55 @@
 import localforage from 'localforage';
 
 export const cartStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'cart_data',
     description: 'Shopping cart and order data'
 });
 
 export const productStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'product_cache',
     description: 'Cached product and variant data',
 });
 
 export const orderStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'offline_orders',
     description: 'Orders created while offline'
 });
 
 export const userStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'user_data',
     description: 'User preferences and settings'
 });
 
 export const discountStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'discount_data',
     description: 'Cached discount data with product associations'
 });
 
 export const taxStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'tax_data',
     description: 'Cached tax data with product associations'
 });
 
 export const couponStorage = localforage.createInstance({
-    name: 'GasManagement',
+    name: 'QodeBookSass',
     storeName: 'coupon_data',
     description: 'Cached coupon data with product associations'
 });
 
 export const salesReportStorage = localforage.createInstance({
-    name: "GasManagement",
+    name: "QodeBookSass",
     storeName: "sales_reports",
     description: "Cached Sales Report with product associations"
 });
 
 export const offlineCustomers = localforage.createInstance({
-    name: "GasManagement",
+    name: "QodeBookSass",
     storeName: "customers",
     description: "Cached customer data with product associations"
 });

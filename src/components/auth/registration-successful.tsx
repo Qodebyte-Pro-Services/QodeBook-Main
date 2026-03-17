@@ -13,7 +13,7 @@ const RegistrationSuccessful = () => {
         <div className="w-[95%] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[40%] mx-auto bg-white py-8 rounded-md mt-6 my-auto lg:mt-0">
             <div className="w-full flex flex-col gap-y-6">
                 <div className="w-full h-[40px]">
-                    <Image width={500} height={500} className="w-[50%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Gas Station Logo" />
+                    <Image width={500} height={500} className="w-[50%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Qodebook Logo" />
                 </div>
                 <motion.div
                     className="relative w-32 h-32 mx-auto flex items-center justify-center"

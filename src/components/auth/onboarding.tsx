@@ -498,7 +498,7 @@ const OnboardingForm = () => {
             height={500}
             className="w-[60%] mx-auto h-full object-contain object-center"
             src={"/images/image 790.png"}
-            alt="Gas Station Logo"
+            alt="Qodebook Logo"
             priority
           />
         </motion.div>

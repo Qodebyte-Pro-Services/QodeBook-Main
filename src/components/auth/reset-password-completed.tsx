@@ -12,7 +12,7 @@ const ResetPasswordCompleted = () => {
         <div className="w-[95%] sm:w-[90%] md:w-[70%] lg:w-[50%] xl:w-[40%] mx-auto bg-white py-8 rounded-md mt-6 lg:mt-0 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
             <div className="w-full flex flex-col gap-y-6">
                 <div className="w-full h-[70px]">
-                    <Image width={500} height={500} className="w-[60%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Gas Station Logo" />
+                    <Image width={500} height={500} className="w-[60%] mx-auto h-full object-contain object-center" src={"/images/image 790.png"} alt="Qodebook Logo" />
                 </div>
                 <div className="svg__holder">
                     <svg className="w-[125px] h-[130px] mx-auto" viewBox="0 0 136 137" fill="none" xmlns="http://www.w3.org/2000/svg">

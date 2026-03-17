@@ -116,8 +116,8 @@ const InputField = memo(({
             <label
                 htmlFor={name}
                 className={`absolute left-4 text-sm transition-all duration-200 pointer-events-none ${isFocused || hasValue
-                        ? 'top-[-18%] text-xs bg-white px-1'
-                        : 'top-1/2 -translate-y-1/2 text-gray-500'
+                    ? 'top-[-18%] text-xs bg-white px-1'
+                    : 'top-1/2 -translate-y-1/2 text-gray-500'
                     }`}
             >
                 {label}
@@ -315,7 +315,7 @@ const ResetPasswordForm = () => {
                         height={500}
                         className="w-[60%] mx-auto h-full object-contain object-center"
                         src={"/images/image 790.png"}
-                        alt="Gas Station Logo"
+                        alt="Qodebook Logo"
                         priority
                     />
                 </motion.div>
@@ -362,8 +362,8 @@ const ResetPasswordForm = () => {
                                         type="submit"
                                         disabled={(!isValid || !isDirty) && isFormSubmitting}
                                         className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md text-sm font-medium text-white focus:outline-none transition-colors ${(!isValid || !isDirty) && isFormSubmitting
-                                                ? 'bg-template-primary/40 cursor-not-allowed'
-                                                : 'bg-template-primary cursor-pointer'
+                                            ? 'bg-template-primary/40 cursor-not-allowed'
+                                            : 'bg-template-primary cursor-pointer'
                                             }`}
                                     >
                                         {isSubmitting ? (
