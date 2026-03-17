@@ -208,7 +208,7 @@ const SalesReport = () => {
         return staffData?.staff || [];
     }
     return [];
-}, [staffData, staffSuccess, staffError]) as any[];
+}, [staffData, staffSuccess, staffError]) as Array<{ staff_id: string; full_name: string; [key: string]: unknown }>;
 
 
     
