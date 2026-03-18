@@ -65,8 +65,9 @@ const PlanCard = ({ plan, index, onSelect }: PlanCardProps) => {
 
             {/* Card */}
             <div
-                className={`
+                className={` 
           relative overflow-hidden rounded-2xl border transition-all duration-500
+          ${plan.gradient}
           ${plan.popular
                         ? "border-amber-500/40 shadow-xl shadow-amber-500/10 bg-white/[0.12] backdrop-blur-2xl"
                         : "border-white/[0.08] shadow-lg bg-white/[0.07] backdrop-blur-xl hover:border-white/20"

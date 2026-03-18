@@ -10,9 +10,10 @@ const StaffAuthLayout = ({children, className, ...props}: DefaultType & {classNa
 
     return(
         <div className={cn("w-screen h-screen overflow-y-auto overflow-x-hidden bg-gradient-to-br from-template-primary via-template-chart-store to-template-whitesmoke", className)} style={hiddenScrollbar} {...props}>
-            <div className="container mx-auto">
-                {children}
-            </div>
+            {/* <div className="container mx-auto">
+               
+            </div> */}
+             {children}
         </div>
     );
 }

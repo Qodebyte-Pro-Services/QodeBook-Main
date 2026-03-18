@@ -35,34 +35,43 @@ const DashboardSidebar = () => {
     const [isStaffLoggedIn, setIsStaffLoggedIn] = useState<boolean>(false);
 
     const { data, isSuccess, isError } = useUserBusinesses();
-      const businessId = useMemo(() => {
+    
+ const isStaff = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Cookies.get("authActiveUser")?.toLowerCase() === "staff";
+}, []);
+    
+    const staffId = useMemo(() => {
+        if (typeof window === "undefined") return "";
+        const activeStaffId = Cookies.get("authStaffId") ? Cookies.get("authStaffId") : "";
+        return activeStaffId;
+    }, []);
+    
+    const businessId = useMemo(() => {
         if (typeof window !== "undefined") {
             const storedId = sessionStorage.getItem("selectedBusinessId");
-            console.log('stored business id', storedId);
             return storedId ? JSON.parse(storedId) : 0;
         }
     }, []);
-    const { staffdata, isStaffSuccess,  isStaffError } = useStaffBusinessData(businessId?.toString() || "");
+    
+    // Only fetch staff data if user is actually a staff member
+    const { staffdata, isStaffSuccess, isStaffError } = useStaffBusinessData(isStaff, businessId?.toString() || "");
     const { sideMenuData } = useSideMenuData();
 
- const businessStaffImage = useMemo(() => {
-    if (isStaffSuccess && !isStaffError) {
-        console.log('business staff image', staffdata?.business?.logo_url);
-        return staffdata?.business?.logo_url;
-    }
-}, [isStaffSuccess, isStaffError, staffdata]);
+    const businessStaffImage = useMemo(() => {
+        if (isStaffSuccess && !isStaffError) {
+            return staffdata?.business?.logo_url;
+        }
+    }, [isStaffSuccess, isStaffError, staffdata]);
 
-
-       const businessImage = useMemo(() => {
-        if (isSuccess   && !isError) {
-            console.log('business owner image', data?.businesses?.[0]?.logo_url);
+    const businessImage = useMemo(() => {
+        if (isSuccess && !isError) {
             return data?.businesses?.[0]?.logo_url;
         }
     }, [isSuccess, isError, data]);
 
     useEffect(() => {
         setSideMenus(sideMenuData);
-        // return () => setSideMenus([]);
     }, [sideMenuData]);
 
     useEffect(() => {
@@ -79,18 +88,6 @@ const DashboardSidebar = () => {
     }, []);
 
     const router = useRouter();
-
-     const isStaff = useMemo(() => {
-           if (typeof window === "undefined") return false;
-           const activeStaffId = Cookies.get("authStaffId") ? Cookies.get("authStaffId") : "";
-           return activeStaffId !== "";
-       }, []);
-   
-       const staffId = useMemo(() => {
-           if (typeof window === "undefined") return "";
-           const activeStaffId = Cookies.get("authStaffId") ? Cookies.get("authStaffId") : "";
-           return activeStaffId;
-       }, []);
 
    
     const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
@@ -109,49 +106,66 @@ const DashboardSidebar = () => {
         setIsLoggingOut(true);
         try {
             if (isStaff) {
-
-                await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
-                    onSuccess(data) {
-                        toast.success(data?.message || "User Logged out Successfully");
-                        Cookies.remove("authToken");
-                        Cookies.remove("authActiveUser");
-                        Cookies.remove("staff_roles");
-                        Cookies.remove("staff_details");
-                        sessionStorage.removeItem("selectedBusinessId");
-                        sessionStorage.removeItem("selectedBranchId");
-                        router.push(`/staff/login/${businessId}`);
-                    },
-                    onError(err) {
-                        throw new Error(err?.message || "Failed to logout");
-                    }
-                });
+                try {
+                    await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
+                        onSuccess(data) {
+                            toast.success(data?.message || "User Logged out Successfully");
+                        },
+                        onError(err) {
+                            console.warn("Staff logout API error:", err);
+                        }
+                    });
+                } catch (err) {
+                    console.warn("Staff logout error:", err);
+                }
+                
+             
+                Cookies.remove("authToken");
+                Cookies.remove("authActiveUser");
+                Cookies.remove("authStaffId");
+                Cookies.remove("staff_roles");
+                Cookies.remove("staff_details");
+                sessionStorage.removeItem("selectedBusinessId");
+                sessionStorage.removeItem("selectedBranchId");
+                sessionStorage.removeItem("posSessionElapsedTime");
+                localStorage.removeItem("posSessionElapsedTime");
+                router.push(`/staff/login/${businessId}`);
                 return;
             }
-            await authLogoutHandler.mutateAsync(businessId, {
-                onSuccess(data) {
 
-                    toast.success(data?.message || "User Logged out Successfully");
-                    Cookies.remove("authToken");
-                    Cookies.remove("authActiveUser");
-                    sessionStorage.removeItem("selectedBusinessId");
-                    sessionStorage.removeItem("selectedBranchId");
-                    router.push("/login");
-                },
-                onError(err) {
-                    throw new Error(err?.message || "Failed to logout");
-                },
-                onSettled() {
-                    setIsLoggingOut(false);
-                }
-            });
+            try {
+                await authLogoutHandler.mutateAsync(businessId, {
+                    onSuccess(data) {
+                        toast.success(data?.message || "User Logged out Successfully");
+                    },
+                    onError(err) {
+                        console.warn("Admin logout API error:", err);
+                    }
+                });
+            } catch (err) {
+                console.warn("Admin logout error:", err);
+            }
+
+         
+            Cookies.remove("authToken");
+            Cookies.remove("authActiveUser");
+            Cookies.remove("authStaffId");
+            sessionStorage.removeItem("selectedBusinessId");
+            sessionStorage.removeItem("selectedBranchId");
+            sessionStorage.removeItem("posSessionElapsedTime");
+            localStorage.removeItem("posSessionElapsedTime");
+            router.push("/login");
+            
         } catch (err) {
             if (err instanceof Error) {
                 toast.error(err?.message || "Failed to logout");
                 return;
             }
             toast.error("Failed to logout");
+        } finally {
+            setIsLoggingOut(false);
         }
-    }, [businessId, isStaff]);
+    }, [businessId, isStaff, staffId, router, authLogoutHandler, authStaffLogoutHandler]);
 
     const isAvalidJson = (value: string) => {
         try {
@@ -176,6 +190,9 @@ const DashboardSidebar = () => {
             setSideMenus(sideMenuData);
         }
     }, [isStaffLoggedIn, sideMenuData]);
+
+
+    
 
     return (
         <ColumnWrapper customStyle={hiddenScrollbar} className="hidden lg:flex w-[24%] max-w-[25dvw] flex-col justify-between">

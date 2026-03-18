@@ -89,7 +89,7 @@ const PlansPage = () => {
     };
 
     return (
-        <div className="w-full h-screen overflow-y-auto overflow-x-hidden">
+        <div className="w-full h-screen  overflow-y-auto scrollbar-hide overflow-x-hidden">
             <div className="h-fit py-8 md:py-12 px-4">
                 {/* Header */}
                 <motion.div
@@ -102,10 +102,10 @@ const PlansPage = () => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.07] border border-white/[0.1] mb-4"
+                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/[0.10] border border-white/[0.1] mb-4"
                     >
                         <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="text-xs font-medium text-white/60 tracking-wide uppercase">
+                        <span className="text-xs font-medium text-gray-900 tracking-wide uppercase">
                             Choose Your Plan
                         </span>
                     </motion.div>
@@ -115,7 +115,7 @@ const PlansPage = () => {
                             Pricing
                         </span>
                     </h1>
-                    <p className="text-sm md:text-base text-white/40 max-w-lg mx-auto leading-relaxed">
+                    <p className="text-sm md:text-base text-gray-900 max-w-lg mx-auto leading-relaxed">
                         Start with the plan that fits your business. Upgrade anytime as you
                         scale.
                     </p>
@@ -138,7 +138,7 @@ const PlansPage = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
-                    className="text-center text-xs text-white/25 mt-8 md:mt-12"
+                    className="text-center text-xs text-gray-900 mt-8 md:mt-12"
                 >
                     All plans include a 14-day free trial • No credit card required •
                     Cancel anytime

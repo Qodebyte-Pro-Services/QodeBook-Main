@@ -1,5 +1,5 @@
 import { deleteAttributeById, deleteBudgetHandler, deleteCategoryById, deleteCouponsById, deleteDiscountsById, deleteExpenseHandler, deleteStaffBusinessSettings, deleteStaffCreds, deleteStaffDoc, deleteStaffShift, deleteTaxesById, deleteUserData } from "@/api/controllers/delete/handler";
-import {  getProductAttributes, getBusinessBranches, getStaffBusinessData } from "@/api/controllers/get/handler";
+import {  getProductAttributes, getBusinessBranches, getStaffBusinessData, getViewStaffBusinessSettings } from "@/api/controllers/get/handler";
 import { userBusinessHandler } from "@/api/controllers/get/handler";
 import { userBusinessesHandler } from "@/api/controllers/get/handler";
 import { getUserproofile } from "@/api/controllers/get/user-data";
@@ -42,15 +42,26 @@ const useUserBusinesses = () => {
 }
 
 
-const useStaffBusinessData = (businessId: string) => {
+const useStaffBusinessData = (isStaff: boolean, businessId: string) => {
     const {data, isError, error, isLoading, isSuccess} = useQuery({
-        queryKey: ["staff-business-data", businessId],
+        queryKey: ["staff-business-data", isStaff, businessId],
         queryFn: () => getStaffBusinessData(businessId),
-        enabled: !!businessId,
+        enabled: isStaff && !!businessId,
         refetchOnWindowFocus: false,
     });
 
     return {staffdata: data , isStaffError: isError, error, isLoading, isStaffSuccess: isSuccess};
+}
+
+const useViewStaffBusinessSettings = (isStaff: boolean, businessId: string) => {
+    const {data, isError, error, isLoading, isSuccess} = useQuery({
+        queryKey: ["view-staff-business-settings", isStaff, businessId],
+        queryFn: () => getViewStaffBusinessSettings(businessId),
+        enabled: isStaff && !!businessId,
+        refetchOnWindowFocus: false,
+    });
+
+    return {data, isError, error, isLoading, isSuccess};
 }
 
 const useBusinessBranches = (businessId: string) => {
@@ -261,5 +272,6 @@ export {
     useBusinessBranches,
     useCreateBusinessBranch,
     useCreateBusiness,
-    useStaffBusinessData
+    useStaffBusinessData,
+    useViewStaffBusinessSettings
 };

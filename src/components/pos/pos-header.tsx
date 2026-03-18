@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PiShoppingCartBold, PiMagnifyingGlass } from "react-icons/pi";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useUserLogoutAuth } from "@/hooks/useAuth";
 import { useStaffAuthLogout } from "@/hooks/staff-controller";
 import { useRouter } from "next/navigation";
+import { useViewStaffBusinessSettings } from "@/hooks/useControllers";
 
 interface POSHeaderProps {
     searchQuery: string;
@@ -26,6 +27,13 @@ const POSHeader: React.FC<POSHeaderProps> = ({
     onCartToggle,
     isOnline = true,
 }) => {
+       const [elapsedTime, setElapsedTime] = useState(() => {
+        if (typeof window === "undefined") return 0;
+        const storedTime = localStorage.getItem("posSessionElapsedTime");
+        return storedTime ? parseInt(storedTime, 10) : 0;
+    });
+        const [sessionTimeoutMinutes, setSessionTimeoutMinutes] = useState<number | null>(null);
+    const [hasTimedOut, setHasTimedOut] = useState(false);
     const staff_details = useMemo(() => {
         if (typeof window === "undefined") return null;
         const activeUser = Cookies.get("authActiveUser") ? Cookies.get("authActiveUser") : "user";
@@ -34,6 +42,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({
     }, []);
 
     const router = useRouter();
+
 
     const isStaff = useMemo(() => {
         if (typeof window === "undefined") return false;
@@ -78,6 +87,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({
                             Cookies.remove("staff_details");
                             sessionStorage.removeItem("selectedBusinessId");
                             sessionStorage.removeItem("selectedBranchId");
+                              sessionStorage.removeItem("posSessionElapsedTime");
                             router.push(`/staff/login/${businessId}`);
                         },
                         onError(err) {
@@ -93,6 +103,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({
                         Cookies.remove("authActiveUser");
                         sessionStorage.removeItem("selectedBusinessId");
                         sessionStorage.removeItem("selectedBranchId");
+                          sessionStorage.removeItem("posSessionElapsedTime");
                         router.push("/login");
                     },
                     onError(err) {
@@ -109,7 +120,52 @@ const POSHeader: React.FC<POSHeaderProps> = ({
                 }
                 toast.error("Failed to logout");
             }
-        }, [businessId, isStaff]);
+        }, [businessId, isStaff, staffId, authLogoutHandler, authStaffLogoutHandler, router]);
+
+                   const ViewStaffBusinessSettings = useViewStaffBusinessSettings(isStaff, businessId?.toString() || "");
+
+                const formatTime = (totalSeconds: number) => {
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+     useEffect(() => {
+        const interval = setInterval(() => {
+            setElapsedTime(prev => prev + 1);
+            localStorage.setItem("posSessionElapsedTime", (elapsedTime + 1).toString());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [elapsedTime]);
+    
+   
+    useEffect(() => {
+        if (isStaff && ViewStaffBusinessSettings?.isSuccess && ViewStaffBusinessSettings?.data) {
+            const staffSettings = ViewStaffBusinessSettings.data?.staff_settings || ViewStaffBusinessSettings.data;
+            const timeoutMinutes = staffSettings?.session_timeout_minutes || 480; 
+            setSessionTimeoutMinutes(timeoutMinutes);
+        }
+    }, [isStaff, ViewStaffBusinessSettings?.isSuccess, ViewStaffBusinessSettings?.data]);
+
+      
+    useEffect(() => {
+        if (!isStaff || !sessionTimeoutMinutes || hasTimedOut) return;
+
+        const timeoutInSeconds = sessionTimeoutMinutes * 60;
+        
+        if (elapsedTime > 0 && elapsedTime >= timeoutInSeconds) {
+            setHasTimedOut(true);
+         
+            toast.warning("Session Expired", {
+                description: "You have been logged out due to inactivity"
+            });
+           
+            setTimeout(() => {
+                handleAuthLogout();
+            }, 1500);
+        }
+    }, [elapsedTime, isStaff, sessionTimeoutMinutes, hasTimedOut, handleAuthLogout]);
     return (
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
             <div className="flex items-center gap-4">
@@ -165,6 +221,21 @@ const POSHeader: React.FC<POSHeaderProps> = ({
                     )}></span>
                     {isOnline ? "Online" : "Offline"}
                 </div>
+
+                    <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70 leading-none mb-1">
+                                {sessionTimeoutMinutes && `Session timeout: ${sessionTimeoutMinutes}m`}
+                            </span>
+                            <span className={`text-sm font-bold font-mono tabular-nums ${
+                                sessionTimeoutMinutes && elapsedTime >= (sessionTimeoutMinutes * 60 * 0.9)
+                                    ? 'text-red-600 dark:text-red-400 animate-pulse'
+                                    : sessionTimeoutMinutes && elapsedTime >= (sessionTimeoutMinutes * 60 * 0.75)
+                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                    : 'text-emerald-700 dark:text-emerald-300'
+                            }`}>
+                                {formatTime(elapsedTime)}
+                            </span>
+                        </div>
             </div>
 
               <div onClick={handleAuthLogout} className="flex items-center rounded-sm gap-x-3 py-2 px-11 cursor-pointer">
