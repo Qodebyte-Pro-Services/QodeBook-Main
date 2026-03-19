@@ -478,9 +478,21 @@ const getOutOfStocksStatus = async ({businessId}: {businessId: number}) => {
     }
 }
 
-const getCustomers = async ({businessId}: {businessId: number}) => {
+const getCustomers = async ({
+  businessId, 
+  filter = 'all', 
+  limit = 50, 
+  offset = 0, 
+  sort_by = 'created_at'
+}: {
+  businessId: number; 
+  filter?: 'all' | 'top' | 'returning' | 'walk_in'; 
+  limit?: number; 
+  offset?: number; 
+  sort_by?: 'created_at' | 'name' | 'total_purchases' | 'order_count'
+}) => {
     try {
-        const response = await axiosInstance.get(`/api/customers?business_id=${businessId}`, {
+        const response = await axiosInstance.get(`/api/customers?business_id=${businessId}&filter=${filter}&limit=${limit}&offset=${offset}&sort_by=${sort_by}`, {
             headers: {
                 "x-business-id": businessId,
             }

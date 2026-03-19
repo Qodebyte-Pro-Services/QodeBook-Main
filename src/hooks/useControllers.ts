@@ -3,7 +3,7 @@ import {  getProductAttributes, getBusinessBranches, getStaffBusinessData, getVi
 import { userBusinessHandler } from "@/api/controllers/get/handler";
 import { userBusinessesHandler } from "@/api/controllers/get/handler";
 import { getUserproofile } from "@/api/controllers/get/user-data";
-import { createExpense, createExpenseCategory, createStaffBusinessSettings, createStaffRole, createStaffShift, createStaffSubcharge, createSupplier, staffDocsUploading, updateStockSupplyOrderStatus, createBudget, createStaffSalary, transferAllBudgetHandler, transferABudgetHandler, createBusinessBranch, createBusinessHandler } from "@/api/controllers/post/product-handler";
+import { createExpense, createExpenseCategory, createStaffBusinessSettings, createStaffRole, createStaffShift, createStaffSubcharge, createSupplier, staffDocsUploading, updateStockSupplyOrderStatus, createBudget, createStaffSalary, transferAllBudgetHandler, transferABudgetHandler, createBusinessBranch, createBusinessHandler, updateStaffRole, deleteStaffRole } from "@/api/controllers/post/product-handler";
 import { updateBudgetHandler, updateBudgetStatus, updateExpenseCategory, updateExpensePaymentStatus, updateExpenseStatus, updateProductByIdHandler, updateStaffBusinessSettings, updateStaffShiftById, updateStaffSubcharge, updateStockSupplyOrder } from "@/api/controllers/put/handlers";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -99,6 +99,18 @@ const useUpdateSupplyOrderStatus = () => useMutation({
 const useCreateStaffRoleHandler = () => {
     return useMutation({
         mutationFn: createStaffRole,
+    });
+};
+
+const useUpdateStaffRoleHandler = () => {
+    return useMutation({
+        mutationFn: updateStaffRole,
+    });
+};
+
+const useDeleteStaffRoleHandler = () => {
+    return useMutation({
+        mutationFn: deleteStaffRole,
     });
 };
 
@@ -273,5 +285,7 @@ export {
     useCreateBusinessBranch,
     useCreateBusiness,
     useStaffBusinessData,
-    useViewStaffBusinessSettings
+    useViewStaffBusinessSettings,
+    useUpdateStaffRoleHandler,
+    useDeleteStaffRoleHandler
 };

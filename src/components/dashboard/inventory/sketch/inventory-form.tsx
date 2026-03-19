@@ -64,6 +64,8 @@ interface BaseOption {
   type: 'text' | 'number' | 'color' | 'range' | 'dropdown';
   values?: string[];
   immutable?: boolean;
+  id?: number;
+  business_id?: number;
 }
 
 interface VariantCombination {
@@ -250,7 +252,7 @@ export default function AddInventory({ sellerData, businessId, switchToTable }: 
     queryFn: async () => await getProductCategories(businessId),
     enabled: businessId !== 0,
   });
-  const { data: productAttributes = { attributes: [] }, isLoading: isAttribute } = useQuery<{ attributes: BaseOption[] }>({
+  const { data: productAttributes = { attributes: [], rawAttributes: [] }, isLoading: isAttribute } = useQuery<{ attributes: BaseOption[]; rawAttributes: any[] }>({
     queryKey: ['product_variants', businessId],
     queryFn: async () => {
       const anyRes: any = await getProductAttributes(businessId);
@@ -277,13 +279,15 @@ export default function AddInventory({ sellerData, businessId, switchToTable }: 
           }).filter(Boolean);
         }
         return {
+          id: a?.id,
+          business_id: a?.business_id,
           name,
           type: values.length > 0 ? 'dropdown' : 'text',
           values,
-          immutable: true,
+          immutable: false,
         };
       });
-      return { attributes };
+      return { attributes, rawAttributes: list };
     },
     enabled: typeof businessId !== "undefined",
     refetchOnWindowFocus: 'always'
@@ -293,23 +297,38 @@ export default function AddInventory({ sellerData, businessId, switchToTable }: 
 
   useEffect(() => {
     const attrs = productAttributes?.attributes ?? [];
-    if (!attrs.length || !variantOptions.length) return;
+    if (!attrs.length) return;
 
-    const map = new Map(
-      attrs.map(a => [String(a.name ?? '').trim().toLowerCase(), a.values ?? []])
-    );
+    setVariantOptions(prevOptions => {
+      if (!prevOptions.length) return prevOptions;
 
-    const updated = variantOptions.map(opt => {
-      if (opt.values?.length) return opt;
-      const key = String(opt.name ?? '').trim().toLowerCase();
-      const hydrated = map.get(key) ?? [];
-      return hydrated.length ? { ...opt, values: hydrated } : opt;
+      const map = new Map(
+        attrs.map(a => [String(a.name ?? '').trim().toLowerCase(), a.values ?? []])
+      );
+
+      const updated = prevOptions.map(opt => {
+        const key = String(opt.name ?? '').trim().toLowerCase();
+        const latestValues = map.get(key) ?? [];
+        
+        // Always update with latest values from attributes
+        // This ensures newly added values appear immediately
+        return latestValues.length 
+          ? { ...opt, values: latestValues } 
+          : opt;
+      });
+
+      // Check if any values actually changed
+      const changed = updated.some((o, i) => {
+        const oldValues = prevOptions[i]?.values ?? [];
+        const newValues = o.values ?? [];
+        // Compare lengths and content
+        return oldValues.length !== newValues.length || 
+               oldValues.some((v, idx) => v !== newValues[idx]);
+      });
+      
+      return changed ? updated : prevOptions;
     });
-
-
-    const changed = updated.some((o, i) => o.values !== variantOptions[i].values);
-    if (changed) setVariantOptions(updated);
-  }, [productAttributes, variantOptions.length]);
+  }, [productAttributes?.attributes]);
 
   const handleCategoryChange = (value: string) => {
     setAddInventoryForm(prev => ({ ...prev, category: value }));
@@ -1031,6 +1050,9 @@ export default function AddInventory({ sellerData, businessId, switchToTable }: 
                   options={variantOptions}
                   setOptions={setVariantOptions}
                   baseOptions={productAttributes?.attributes || []}
+                  attributes={productAttributes?.rawAttributes || []}
+                  businessId={businessId}
+                  onAttributesUpdated={() => queryClient.invalidateQueries({ queryKey: ['product_variants', businessId] })}
                 />
 
                 <div className="mt-4">

@@ -3,14 +3,27 @@
 import { DataTableWithNumberPagination } from "@/components/data-table/data-table-with-numbered-pagination";
 import customerColumns from "@/components/data-table/customer-columns";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMemo} from "react";
+import { useMemo, useState} from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getCustomers } from "@/api/controllers/get/handler";
 import { RiLoader4Line } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+
+type FilterType = 'all' | 'top' | 'returning' | 'walk_in';
+type SortType = 'created_at' | 'name' | 'total_purchases' | 'order_count';
+
 
 const CustomersTable = () => {
+
+     const [filter, setFilter] = useState<FilterType>('all');
+    const [sortBy, setSortBy] = useState<SortType>('created_at');
+    const [currentPage, setCurrentPage] = useState(1);
+    const LIMIT = 50;
+
+
     const businessId = useMemo(() => {
         if (typeof window !== "undefined") {
             const id = sessionStorage.getItem("selectedBusinessId");
@@ -19,9 +32,24 @@ const CustomersTable = () => {
         return 0;
     }, []);
 
-    const {data: customerData, isLoading: customerLoading, isSuccess: customerSuccess, isError: customerError, error: customerErrorData, refetch: customerRefetch} = useQuery({
-        queryKey: ["get-customers", businessId],
-        queryFn: () => getCustomers({businessId}),
+      const offset = (currentPage - 1) * LIMIT;
+
+  const {
+        data: customerData,
+        isLoading: customerLoading,
+        isSuccess: customerSuccess,
+        isError: customerError,
+        error: customerErrorData,
+        refetch: customerRefetch
+    } = useQuery({
+        queryKey: ["get-customers", businessId, filter, sortBy, currentPage],
+        queryFn: () => getCustomers({
+            businessId,
+            filter,
+            sort_by: sortBy,
+            limit: LIMIT,
+            offset
+        }),
         refetchOnWindowFocus: false,
         retry: false,
     });
@@ -32,6 +60,24 @@ const CustomersTable = () => {
         }
         return [];
     }, [customerData, customerSuccess]);
+
+    
+    const pagination = useMemo(() => {
+        if (customerSuccess && customerData?.pagination) {
+            return customerData.pagination;
+        }
+        return null;
+    }, [customerData, customerSuccess]);
+
+    const handleFilterChange = (newFilter: FilterType) => {
+        setFilter(newFilter);
+        setCurrentPage(1);
+    };
+
+    const handleSortChange = (newSort: SortType) => {
+        setSortBy(newSort);
+        setCurrentPage(1);
+    };
 
     if (customerLoading) {
         return (
@@ -58,6 +104,20 @@ const CustomersTable = () => {
         );
     }
 
+    const filterOptions: Array<{ value: FilterType; label: string; description: string }> = [
+        { value: 'all', label: 'All Customers', description: 'Show all customers' },
+        { value: 'top', label: 'Top Customers', description: 'Customers with purchases' },
+        { value: 'returning', label: 'Returning', description: 'Customers with 2+ orders' },
+        { value: 'walk_in', label: 'Walk-in', description: 'No phone or email' },
+    ];
+
+    const sortOptions: Array<{ value: SortType; label: string }> = [
+        { value: 'created_at', label: 'Newest First' },
+        { value: 'name', label: 'Name (A-Z)' },
+        { value: 'total_purchases', label: 'Total Purchases' },
+        { value: 'order_count', label: 'Order Count' },
+    ];
+
     return (
         <Card className="w-full dark:bg-black">
             <div className="flex flex-col gap-y-3">
@@ -65,8 +125,71 @@ const CustomersTable = () => {
                     <CardTitle className="text-base font-[600]">Customers</CardTitle>
                     <CardDescription className="text-xs font-[550] text-muted-foreground">Manage your customer database</CardDescription>
                 </CardHeader>
-                <div className="px-4 py-5 bg-white dark:bg-black rounded-sm">
-                    <DataTableWithNumberPagination columns={customerColumns} data={customerdata} filterId="name" placeholderText="Search by Customer Name / ID" isShowCost={false} isShowStock={true} displayedText="Customers" />
+                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="space-y-4">
+                        {/* Filter Buttons */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Filter by Type
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {filterOptions.map((option) => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => handleFilterChange(option.value)}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                            filter === option.value
+                                                ? 'bg-template-primary text-white shadow-md'
+                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                        }`}
+                                        title={option.description}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Sort Dropdown */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Sort by
+                            </label>
+                            <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
+                                <SelectTrigger className="w-full md:w-64">
+                                    <SelectValue placeholder="Select sort option" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sortOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Pagination Info */}
+                        {pagination && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Showing {((pagination.current_page - 1) * pagination.limit) + 1}-{Math.min(pagination.current_page * pagination.limit, pagination.total_records)} of {pagination.total_records} customers
+                            </div>
+                        )}
+                    </div>
+                </div>
+                 <div className="px-4 py-5 bg-white dark:bg-black rounded-sm">
+                    <DataTableWithNumberPagination
+                        columns={customerColumns}
+                        data={customerdata}
+                        filterId="name"
+                        placeholderText="Search by Customer Name / ID"
+                        isShowCost={false}
+                        isShowStock={true}
+                        displayedText="Customers"
+                        pagination={pagination}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             </div>
         </Card>

@@ -257,6 +257,50 @@ const createStaffRole = async (request_data: StaffRoleTypes) => {
     }
 }
 
+const updateStaffRole = async (request_data: Omit<StaffRoleTypes, 'description'> & {role_id: string}) => {
+    const {role_id, business_id, role_name, permissions} = request_data;
+    try {
+        const updatePayload: Partial<{role_name: string; permissions: string | Array<string>}> = {};
+        
+        if (role_name) {
+            updatePayload.role_name = role_name;
+        }
+        
+        if (permissions) {
+            updatePayload.permissions = permissions;
+        }
+
+        const response = await axiosInstance.put(`/api/staff/roles/${role_id}`, updatePayload, {
+            headers: {
+                "x-business-id": business_id
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred While Trying To Update Staff Role");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Update Staff Role");
+    }
+}
+
+const deleteStaffRole = async (request_data: {role_id: string; business_id: number}) => {
+    const {role_id, business_id} = request_data;
+    try {
+        const response = await axiosInstance.delete(`/api/staff/roles/${role_id}`, {
+            headers: {
+                "x-business-id": business_id
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred While Trying To Delete Staff Role");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Delete Staff Role");
+    }
+}
+
 const createStaffCreation = async(request_data: {business_id: number; branch_id: number; data: FormData}) => {
     const {business_id, branch_id, data} = request_data;
     try {
@@ -455,4 +499,4 @@ const createBusinessHandler = async (data: FormData) => {
     }
 }
 
-export {createCategory, createAttribute, createAttributeBulk, createProductHandler, createSupplier, createOrderFormHandler, createProductOrder, createBusinessBranch, createProductVariantAdjustment, createStaffRole, createStaffCreation, createStaffBusinessSettings, createTaxForm, createDiscountForm, createSalesCoupon, updateStockSupplyOrderStatus, staffDocsUploading, createStaffShift, createStaffSubcharge, createExpenseCategory, createExpense, createBudget, createStaffSalary, transferAllBudgetHandler, transferABudgetHandler, createBusinessHandler};
+export {createCategory, createAttribute, createAttributeBulk, createProductHandler, createSupplier, createOrderFormHandler, createProductOrder, createBusinessBranch, createProductVariantAdjustment, createStaffRole, updateStaffRole, deleteStaffRole, createStaffCreation, createStaffBusinessSettings, createTaxForm, createDiscountForm, createSalesCoupon, updateStockSupplyOrderStatus, staffDocsUploading, createStaffShift, createStaffSubcharge, createExpenseCategory, createExpense, createBudget, createStaffSalary, transferAllBudgetHandler, transferABudgetHandler, createBusinessHandler};

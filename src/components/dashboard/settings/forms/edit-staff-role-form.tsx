@@ -8,6 +8,7 @@ import { ChevronDown, Users, Shield, CheckCircle, Edit } from "lucide-react";
 import { PRODUCT_PERMISSIONS, STOCK_PERMISSIONS, SALES_PERMISSIONS, STAFF_PERMISSIONS, APPOINTMENT_PERMISSIONS, CUSTOMER_PERMISSIONS, REPORTS_ANALYTICS_PERMISSIONS, FINANCIAL_PERMISSIONS, BUSINESS_PERMISSIONS, INVENTORY_LOG_PERMISSIONS, SERVICE_PERMISSIONS, IMPORT_EXPORT_PERMISSIONS } from "@/models/types/constants/staff-role-constants";
 import { StaffRoleObj, StaffRoleTypes } from "@/models/types/shared/handlers-type";
 import { toast } from "sonner";
+import { useUpdateStaffRoleHandler } from "@/hooks/useControllers";
 
 interface EditStaffRoleFormProps {
     businessId: string;
@@ -20,7 +21,9 @@ interface EditStaffRoleFormProps {
 
 const EditStaffRoleForm = ({ businessId, created_by, roleData, handleFormClose }: EditStaffRoleFormProps) => {
     const { hiddenScrollbar } = useCustomStyles();
-    
+    const updateStaffRoleMutation = useUpdateStaffRoleHandler();
+
+
     const [formData, setFormData] = useState<Omit<StaffRoleTypes, 'business_id' | 'description'>>({
         role_name: roleData.role_name,
         permissions: roleData.permissions || [],
@@ -163,39 +166,37 @@ const EditStaffRoleForm = ({ businessId, created_by, roleData, handleFormClose }
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async () => {
+ 
+   const handleSubmit = async () => {
         if (!validateForm()) return;
 
         setIsSubmitting(true);
         try {
-            const payload = {
-                ...formData,
+            const payload: Omit<StaffRoleTypes, 'description'> & {role_id: string} = {
+                role_name: formData.role_name,
+                permissions: formData.permissions,
                 created_by,
                 business_id: parseInt(businessId),
-                id: roleData.role_id
+                role_id: roleData.role_id
             };
 
-            // TODO: Replace with actual update API call
-            console.log('Updating staff role:', payload);
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await updateStaffRoleMutation.mutateAsync(payload);
             
             toast.success("Staff Role Updated Successfully");
-            await new Promise(res => setTimeout(res, 2000));
+            await new Promise(res => setTimeout(res, 1500));
             handleFormClose();
         } catch (error) {
             console.error('Error updating staff role:', error);
-            toast.error("An unexpected error occurred while updating staff role");
+            const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred while updating staff role";
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
     };
-
     const selectedCategoryData = permissionCategories.find(cat => cat.name === selectedCategory);
     const selectedPermissionsCount = formData.permissions.length;
     
-    // Group selected permissions by category
+   
     const groupedSelectedPermissions = permissionCategories.reduce((acc, category) => {
         const categoryPermissions = Object.values(category.permissions).filter(permission => 
             formData.permissions.includes(permission)

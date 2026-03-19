@@ -24,13 +24,25 @@ interface DataTablePaginationProps<TData> {
   isShowCost?: boolean;
   isShowStock?: boolean;
   displayedText?: string;
+  pagination?: {
+    current_page: number;
+    total_pages: number;
+    total_records: number;
+    limit: number;
+    offset: number;
+  };
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function DataTableNumberPagination<TData>({
   table,
   isShowCost = true,
   isShowStock = true,
-  displayedText = "Stocks"
+  displayedText = "Stocks",
+  pagination,
+  currentPage,
+  onPageChange
 }: DataTablePaginationProps<TData>) {
   const [totalCost, setTotalCost] = useState<number>(0);
   useEffect(() => {
@@ -68,28 +80,54 @@ export function DataTableNumberPagination<TData>({
               </Button>
             </PaginationItem>
 
-            {Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {              
-              return (
-                <React.Fragment key={i}>
-                  {i === 2 && table.getPageCount() > 5 && (
+                      {pagination ? (
+           
+              Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <React.Fragment key={i}>
+                    {i === 2 && pagination.total_pages > 5 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
                     <PaginationItem>
-                      <PaginationEllipsis />
+                      <PaginationLink
+                        isActive={currentPage === pageNum}
+                        color={currentPage === pageNum ? 'var(--color-template-chart-store/40)' : ''}
+                        onClick={() => onPageChange?.(pageNum)}
+                        className="cursor-pointer active:bg-template-chart-store/40 rounded-sm"
+                      >
+                        {pageNum}
+                      </PaginationLink>
                     </PaginationItem>
-                  )}
-                  <PaginationItem>
-                    <PaginationLink
-                      isActive={table.getState().pagination.pageIndex === (i + 1)}
-                      color={table.getState().pagination.pageIndex === (i + 1) ? 'var(--color-template-chart-store/40)' : ''}
-                      onClick={() => table.setPageIndex(i + 1)}
-                      className="cursor-pointer active:bg-template-chart-store/40 rounded-sm"
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                </React.Fragment>
-              );
-            })}
-
+                  </React.Fragment>
+                );
+              })
+            ) : (
+             
+              Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {
+                return (
+                  <React.Fragment key={i}>
+                    {i === 2 && table.getPageCount() > 5 && (
+                      <PaginationItem>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )}
+                    <PaginationItem>
+                      <PaginationLink
+                        isActive={table.getState().pagination.pageIndex === (i + 1)}
+                        color={table.getState().pagination.pageIndex === (i + 1) ? 'var(--color-template-chart-store/40)' : ''}
+                        onClick={() => table.setPageIndex(i + 1)}
+                        className="cursor-pointer active:bg-template-chart-store/40 rounded-sm"
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </React.Fragment>
+                );
+              })
+            )}
             <PaginationItem className="ml-4">
               <Button
                 variant="ghost"

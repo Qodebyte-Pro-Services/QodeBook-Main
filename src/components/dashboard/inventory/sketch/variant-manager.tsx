@@ -19,6 +19,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RxCross2 } from 'react-icons/rx';
+import { Edit2 } from 'lucide-react';
+import EditAttributes from '../forms/edit-attribute-comp';
+import { ProductAttributeProp } from '@/models/types/shared/project-type';
 
 // Type definitions
 interface VariantOption {
@@ -34,20 +37,30 @@ interface BaseOption {
     type: 'text' | 'number' | 'color' | 'range' | 'dropdown';
     values?: string[];
     immutable?: boolean;
+    id?: number;
+    business_id?: number;
 }
 
 interface VariantManagerProps {
     options: VariantOption[];
     setOptions: React.Dispatch<React.SetStateAction<VariantOption[]>>;
     baseOptions: BaseOption[];
+    attributes?: (ProductAttributeProp | BaseOption)[];
+    businessId?: number;
+    onAttributesUpdated?: () => void;
 }
 
 export default function VariantManager({
     options,
     setOptions,
     baseOptions,
+    attributes,
+    businessId = 0,
+    onAttributesUpdated,
 }: VariantManagerProps) {
     const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+    const [isEditAttributesOpen, setIsEditAttributesOpen] = useState<boolean>(false);
+    const [editingOptionName, setEditingOptionName] = useState<string | null>(null);
     const [customOptionName, setCustomOptionName] = useState<string>('');
     const [inputValue, setInputValue] = useState<Record<string, string>>({});
 
@@ -193,9 +206,25 @@ export default function VariantManager({
                     <div key={option.name} className="p-3 border rounded-md bg-gray-50/80 space-y-3">
                         <div className="flex justify-between items-center">
                             <h4 className="font-medium">{option.name}</h4>
-                            <Button variant="ghost" size="icon" onClick={() => handleRemoveOption(option.name)} className="h-7 w-7">
-                                <RxCross2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                {!option.immutable && attributes && attributes.length > 0 && businessId && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => {
+                                            setEditingOptionName(option.name);
+                                            setIsEditAttributesOpen(true);
+                                        }}
+                                        className="h-7 w-7 text-blue-600 hover:text-blue-700"
+                                        title="Edit attribute values"
+                                    >
+                                        <Edit2 className="h-4 w-4" />
+                                    </Button>
+                                )}
+                                <Button variant="ghost" size="icon" onClick={() => handleRemoveOption(option.name)} className="h-7 w-7">
+                                    <RxCross2 className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 min-h-[28px]">
@@ -266,6 +295,20 @@ export default function VariantManager({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {attributes && businessId && (
+                <EditAttributes
+                    businessId={businessId}
+                    attributes={attributes}
+                    editingOptionName={editingOptionName}
+                    isOpen={isEditAttributesOpen}
+                    handleClose={() => {
+                        setIsEditAttributesOpen(false);
+                        setEditingOptionName(null);
+                    }}
+                    onAttributeUpdated={onAttributesUpdated}
+                />
+            )}
         </div>
     );
 }

@@ -29,6 +29,15 @@ interface DataTableProps<TData, TValue> {
   isShowCost?: boolean;
   displayedText?: string;
   isLoading?: boolean;
+  pagination?: {
+    current_page: number;
+    total_pages: number;
+    total_records: number;
+    limit: number;
+    offset: number;
+  };
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function DataTableWithNumberPagination<TData, TValue>({
@@ -39,7 +48,10 @@ export function DataTableWithNumberPagination<TData, TValue>({
   isShowStock,
   isShowCost,
   displayedText,
-  isLoading = false
+  isLoading = false,
+  pagination,
+  currentPage,
+  onPageChange
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -130,7 +142,15 @@ export function DataTableWithNumberPagination<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTableNumberPagination table={table} displayedText={displayedText} isShowCost={isShowCost} isShowStock={isShowStock} />
+    <DataTableNumberPagination 
+  table={table} 
+  displayedText={displayedText} 
+  isShowCost={isShowCost} 
+  isShowStock={isShowStock}
+  pagination={pagination}
+  currentPage={currentPage}
+  onPageChange={onPageChange}
+/>
     </div>
   );
 }
