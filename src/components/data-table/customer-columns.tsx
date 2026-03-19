@@ -55,14 +55,21 @@ const customerColumns: ColumnDef<CustomerResponse>[] = [
     },
     {
         id: "actions",
-        cell: ({row}) => (
-            <FlexibleDataTableRowActions>
-                <DropdownMenuItem onClick={() => location.href = `/customer/${row.original.id}`}>View</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => console.log(row)}>Edit</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleDeleteUser(row.original)}>Delete</DropdownMenuItem>
-            </FlexibleDataTableRowActions>
-        )
+        cell: ({row}) => {
+            const isWalkIn = (row.original as Record<string, unknown>)?.is_walk_in === true;
+            return (
+                <FlexibleDataTableRowActions>
+                    {!isWalkIn && (
+                        <>
+                            <DropdownMenuItem onClick={() => location.href = `/customer/${row.original.id}`}>View</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => console.log(row)}>Edit</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDeleteUser(row.original)}>Delete</DropdownMenuItem>
+                        </>
+                    )}
+                </FlexibleDataTableRowActions>
+            );
+        }
     }
 ];
 
