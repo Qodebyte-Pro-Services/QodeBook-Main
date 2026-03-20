@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useQuery } from "@tanstack/react-query";
-import { Search, FileText, Eye, Share2 } from "lucide-react";
+import { Search, FileText, Eye, Share2, Loader } from "lucide-react";
 import React, { useEffect, useMemo, useReducer, useState, useCallback, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,7 +18,7 @@ import { useSalesReport } from "@/hooks/use-localforage";
 import { SalesReportQueryLogic } from "@/lib/storage-utils";
 
 type StateTypes = {
-    business_id : number;
+    business_id: number;
     branch_id: number;
     date_filter: string;
     start_date: string;
@@ -38,10 +38,10 @@ type ActionType = {
 }
 
 const reducer = (state: StateTypes, action: ActionType): StateTypes => {
-    switch(action.type) {
+    switch (action.type) {
         case "filter":
-            const {...rest} = action.values;
-            return {...state, ...rest};
+            const { ...rest } = action.values;
+            return { ...state, ...rest };
         default:
             return state;
     }
@@ -54,11 +54,11 @@ const SalesReport = () => {
         date_filter: "",
         start_date: "",
         end_date: "",
-        summary:"",
-        details:"",
-        cashier:"", 
-        payment_methods:"",
-        product_breakdown:"",
+        summary: "",
+        details: "",
+        cashier: "",
+        payment_methods: "",
+        product_breakdown: "",
         page: 1,
         pageSize: 10,
     });
@@ -75,14 +75,14 @@ const SalesReport = () => {
     const [reportsQueryData, setReportsQueryData] = useState<SalesReportQueryLogic[]>([]);
 
     const [isGenerated, setIsGenerated] = useState<boolean>(false);
-    
+
     const [queryData, setQueryData] = useState<Record<string, string>>({});
     const [queryStrings, setQueryString] = useState<string>("");
     const [mapKey, setMapKey] = useState<string>("");
 
     const router = useRouter();
 
-    const { setSalesReport } = useSalesReportData();
+    const { updateSalesReport, deleteSalesReport, clearSalesReport } = useSalesReport();
 
     const businessId = useMemo(() => {
         if (typeof window !== "undefined") {
@@ -98,7 +98,147 @@ const SalesReport = () => {
         }
     }, []);
 
-    const {updateSalesReport, getSalesReportData, deleteSalesReport, clearSalesReport} = useSalesReport();
+
+    const formatDate = (date: Date): string => {
+        return date.toISOString().split('T')[0];
+    };
+
+
+    const calculateDateRange = (type: string) => {
+        const today = new Date();
+        const endDate = formatDate(today);
+        let startDate = endDate;
+
+        switch (type) {
+            case 'day':
+
+                startDate = endDate;
+                break;
+            case 'week':
+
+                const weekAgo = new Date(today);
+                weekAgo.setDate(weekAgo.getDate() - 6);
+                startDate = formatDate(weekAgo);
+                break;
+            case 'month':
+
+                const monthAgo = new Date(today);
+                monthAgo.setDate(monthAgo.getDate() - 29);
+                startDate = formatDate(monthAgo);
+                break;
+            case 'year':
+
+                const yearAgo = new Date(today);
+                yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+                startDate = formatDate(yearAgo);
+                break;
+            default:
+                break;
+        }
+
+        return { startDate, endDate };
+    };
+
+    useEffect(() => {
+        if (reportType) {
+            const { startDate: newStart, endDate: newEnd } = calculateDateRange(reportType);
+            setStartDate(newStart);
+            setEndDate(newEnd);
+        }
+    }, [reportType]);
+
+    // Function to get period key based on order date and report type
+    const getPeriodKey = (dateString: string, type: string): { key: string; label: string } => {
+        const date = new Date(dateString);
+
+        switch (type) {
+            case 'day':
+                return {
+                    key: date.toISOString().split('T')[0],
+                    label: date.toISOString().split('T')[0]
+                };
+            case 'week':
+                // Get the week number
+                const tempDate = new Date(date);
+                const firstDayOfYear = new Date(tempDate.getFullYear(), 0, 1);
+                const pastDaysOfYear = (tempDate.getTime() - firstDayOfYear.getTime()) / 86400000;
+                const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+
+                // Get week start date
+                const weekStart = new Date(date);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+
+                return {
+                    key: `${tempDate.getFullYear()}-W${String(weekNum).padStart(2, '0')}`,
+                    label: `Week ${weekNum} (${formatDate(weekStart)} - ${formatDate(weekEnd)})`
+                };
+            case 'month':
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                return {
+                    key: `${year}-${month}`,
+                    label: monthName
+                };
+            case 'year':
+                const yr = date.getFullYear();
+                return {
+                    key: `${yr}`,
+                    label: `${yr}`
+                };
+            default:
+                return { key: dateString, label: dateString };
+        }
+    };
+
+    // Function to group report data by period
+    const groupReportDataByPeriod = (reportData: SalesReportLogic, type: string) => {
+        if (!reportData?.order_details || reportData.order_details.length === 0) {
+            return [];
+        }
+
+        type PeriodData = SalesReportQueryLogic & {
+            period_label: string;
+        };
+
+        const grouped = new Map<string, PeriodData>();
+
+        // Group orders by period
+        reportData.order_details.forEach((order: { created_at: string;[key: string]: unknown }) => {
+            const { key, label } = getPeriodKey(order.created_at, type);
+
+            if (!grouped.has(key)) {
+                grouped.set(key, {
+                    start_date: key,
+                    end_date: key,
+                    period_label: label,
+                    report_type: type,
+                    format: queryData?.format || 'JSON',
+                    business_id: +(queryData?.business_id || 0),
+                    mapId: mapKey,
+                    generated_at: new Date().toLocaleDateString("default", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "2-digit",
+                        minute: "2-digit",
+                        hour: "2-digit",
+                    }),
+                    query_data: new Map([[mapKey, queryStrings]]),
+                    updatedAt: Date.now()
+                } as unknown as PeriodData);
+            }
+        });
+
+        // Convert map to array and sort by period key
+        const sortedArray = Array.from(grouped.values());
+        return sortedArray.sort((a, b) => {
+            const dateA = a?.start_date || '';
+            const dateB = b?.start_date || '';
+            return String(dateA).localeCompare(String(dateB));
+        });
+    };
 
     const generateQuery = () => {
         const queryData = {
@@ -109,7 +249,7 @@ const SalesReport = () => {
             start_date: startDate,
             end_date: endDate,
             summary: includeSummary ? "true" : "false",
-            details: includeDetails ? "true" : "false", 
+            details: includeDetails ? "true" : "false",
             payment_methods: includePaymentMethod ? "true" : "false",
             product_breakdown: includeProductBreakdown ? "true" : "false",
             page: state.page,
@@ -118,7 +258,7 @@ const SalesReport = () => {
         };
 
         const filteredQuery = Object.entries(queryData)
-            .filter(([key, value]) => value !== "" && value !== null && value !== undefined && value !== "all") 
+            .filter(([key, value]) => value !== "" && value !== null && value !== undefined && value !== "all")
             .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
         const searchParams = new URLSearchParams();
@@ -162,9 +302,9 @@ const SalesReport = () => {
                 branchId: +branchId
             }
         }
-    }, [queryStrings, businessId, branchId]) as {url: string; businessId: number; branchId: number};
+    }, [queryStrings, businessId, branchId]) as { url: string; businessId: number; branchId: number };
 
-    const {data: reportData, isSuccess: salesReportSuccess, isError: salesReportError} = useQuery({
+    const { data: reportData, isSuccess: salesReportSuccess, isError: salesReportError, isPending: isLoadingReport } = useQuery({
         queryKey: ["get-sales-report", queryData, businessId, branchId],
         queryFn: () => getSalesReport(salesReportData),
         enabled: (typeof queryData !== "undefined") && businessId !== 0 && branchId !== 0,
@@ -181,22 +321,24 @@ const SalesReport = () => {
 
     useEffect(() => {
         if (salesReportOrder) {
-            const mk = queryStrings 
-                ? btoa(encodeURIComponent(queryStrings)) 
-                : Date.now()?.toString(16);
-            const dataSetter = new Map();
-            dataSetter?.set(mk, salesReportOrder);
-            setSalesReport(dataSetter);
-            setMapKey(mk);
+           
+            const reportKey = `sales_report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+      
+            if (typeof window !== "undefined") {
+                localStorage.setItem(reportKey, JSON.stringify(salesReportOrder));
+            }
+            
+            setMapKey(reportKey);
         }
-    }, [salesReportOrder, setSalesReport, queryStrings]);
+    }, [salesReportOrder, queryStrings]);
 
     const handleViewReport = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         const mapKey = e.currentTarget?.dataset?.uid || '';
         router.push(`/sales/${mapKey}`);
     }, [router]);
 
-    const {data: staffData, isSuccess: staffSuccess, isError: staffError} = useQuery({
+    const { data: staffData, isSuccess: staffSuccess, isError: staffError } = useQuery({
         queryKey: ["get-staff-by-business-id", businessId],
         queryFn: () => getStaffByBusinessId(businessId),
         enabled: businessId !== 0,
@@ -204,42 +346,33 @@ const SalesReport = () => {
         retry: false
     });
     const cashiers = useMemo(() => {
-    if (staffSuccess && !staffError) {
-        return staffData?.staff || [];
-    }
-    return [];
-}, [staffData, staffSuccess, staffError]) as Array<{ staff_id: string; full_name: string; [key: string]: unknown }>;
+        if (staffSuccess && !staffError) {
+            return staffData?.staff || [];
+        }
+        return [];
+    }, [staffData, staffSuccess, staffError]) as Array<{ staff_id: string; full_name: string;[key: string]: unknown }>;
 
 
-    
-    
+
+
     useEffect(() => {
         if (!queryStrings || !mapKey || !queryData) return;
-        
+
         const queryDataValues = Object.values(queryData);
         if (queryDataValues.length === 0) return;
 
-        const reportData: SalesReportQueryLogic & {updatedAt: number} = {
-            business_id: +(queryData?.business_id || 0),
-            format: queryData?.format || "JSON",
-            generated_at: new Date().toLocaleDateString("default", {
-                month: "short",
-                day: "2-digit",
-                year: "2-digit",
-                minute:"2-digit",
-                hour: "2-digit",
-            }),
-            mapId: mapKey,
-            query_data: new Map([[mapKey, queryStrings]]),
-            report_type: queryData?.date_filter || "N/A",
-            date_range: `${queryData?.start_date || ""} - ${queryData?.end_date || ""}`,
-            end_date: queryData?.end_date || "",
-            start_date: queryData?.start_date || "",
-            updatedAt: Date.now()
-        };
-        const newData = [reportData];
-        setReportsQueryData(newData);
-    }, [queryStrings, mapKey, queryData]);
+        // If we have the actual report data with order details, group by period
+        if (salesReportOrder && salesReportOrder.order_details && salesReportOrder.order_details.length > 0) {
+            const groupedData = groupReportDataByPeriod(salesReportOrder, queryData?.date_filter || '');
+            if (groupedData.length > 0) {
+                setReportsQueryData(groupedData);
+                return;
+            }
+        }
+
+        // If no order details, show empty state instead of fallback row
+        setReportsQueryData([]);
+    }, [queryStrings, mapKey, queryData, salesReportOrder]);
 
     // useEffect(() => {
     //     if (!reportsQueryData?.length) return;
@@ -256,7 +389,7 @@ const SalesReport = () => {
     //     const timer = setTimeout(async () => {
     //         await saveReports(); 
     //     }, 500);
-        
+
     //     return () => {
     //         clearTimeout(timer);
     //     };
@@ -289,7 +422,7 @@ const SalesReport = () => {
     // }, [businessId, getSalesReportData]);
 
 
-    return(
+    return (
         <div className="flex flex-col gap-y-5 px-2 sm:px-4 lg:px-0">
             <Card className="dark:bg-black">
                 <CardHeader>
@@ -341,7 +474,7 @@ const SalesReport = () => {
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Select Cashier" />
                                 </SelectTrigger>
-                                <SelectContent> 
+                                <SelectContent>
                                     <SelectItem value="all">All Cashier</SelectItem>
                                     {cashiers?.map((cashier) => (
                                         <SelectItem key={`cashier-staff-id-${cashier?.staff_id}`} value={`${cashier?.staff_id}`}>{cashier?.full_name}</SelectItem>
@@ -372,12 +505,17 @@ const SalesReport = () => {
                                 <div className="text-sm font-[500]">Product Breakdown</div>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleGenerateReport}
-                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors duration-200 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-2"
+                                disabled={isLoadingReport}
+                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-md transition-colors duration-200 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-2"
                             >
-                                <FileText size={18} />
-                                Generate Report
+                                {isLoadingReport ? (
+                                    <Loader size={18} className="animate-spin" />
+                                ) : (
+                                    <FileText size={18} />
+                                )}
+                                {isLoadingReport ? 'Generating...' : 'Generate Report'}
                             </button>
                         </CardContent>
                     </div>
@@ -390,10 +528,10 @@ const SalesReport = () => {
                         <CardDescription>Previously Generated Reports</CardDescription>
                     </div>
                     <div className="w-full max-w-md relative">
-                        <input 
-                            type="text" 
-                            placeholder="Search by transaction ID" 
-                            className="w-full pl-8 pr-3 py-1.5 rounded-sm border border-gray-500/30 focus:outline-none placeholder:text-sm" 
+                        <input
+                            type="text"
+                            placeholder="Search by transaction ID"
+                            className="w-full pl-8 pr-3 py-1.5 rounded-sm border border-gray-500/30 focus:outline-none placeholder:text-sm"
                         />
                         <Search size={20} className="text-gray-500/40 font-bold absolute left-2 top-1/2 -translate-y-1/2" />
                     </div>
@@ -414,78 +552,84 @@ const SalesReport = () => {
                             <TableBody>
                                 {reportsQueryData?.length ? reportsQueryData?.map((sr, idx) => (
                                     <TableRow key={`sales-report-${idx}`}>
-                                            <TableCell>
-                                                {sr?.start_date && sr?.end_date 
-                                                    ? `${sr?.start_date} - ${sr?.end_date}`
-                                                    : 'Custom Range'}
-                                            </TableCell>
-                                            <TableCell className="capitalize">{sr?.report_type || 'Custom'}</TableCell>
-                                            <TableCell>{sr?.start_date || 'N/A'}</TableCell>
-                                            <TableCell>{sr?.end_date || 'N/A'}</TableCell>
-                                            <TableCell className="uppercase">{sr?.format || 'N/A'}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="icon"
-                                                                    data-uid={sr?.mapId}
-                                                                    className="h-8 w-8"
-                                                                    onClick={handleViewReport}
-                                                                >
-                                                                    <Eye className="h-4 w-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>View Report</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                    <TooltipProvider>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button 
-                                                                    variant="ghost" 
-                                                                    size="icon" 
-                                                                    className="h-8 w-8"
-                                                                    onClick={async () => {
-                                                                        try {
-                                                                            if (navigator.share) {
-                                                                                await navigator.share({
-                                                                                    title: 'Sales Report',
-                                                                                    text: 'Check out this sales report',
-                                                                                    url: window.location.href,
-                                                                                });
-                                                                            } else {
-                                                                                await navigator.clipboard.writeText(window.location.href);
-                                                                                toast.success('Link copied to clipboard');
-                                                                            }
-                                                                        } catch (error) {
-                                                                            console.error('Error sharing:', error);
-                                                                            toast.error('Failed to share');
+                                        <TableCell>
+                                            {(() => {
+                                                const item = sr as Record<string, unknown>;
+                                                if (item && typeof item === 'object' && 'period_label' in item && typeof item.period_label === 'string') {
+                                                    return item.period_label;
+                                                }
+                                                return sr?.start_date && sr?.end_date
+                                                    ? `${String(sr?.start_date)} - ${String(sr?.end_date)}`
+                                                    : 'Custom Range';
+                                            })()}
+                                        </TableCell>
+                                        <TableCell className="capitalize">{sr?.report_type || 'Custom'}</TableCell>
+                                        <TableCell>{sr?.start_date || 'N/A'}</TableCell>
+                                        <TableCell>{sr?.end_date || 'N/A'}</TableCell>
+                                        <TableCell className="uppercase">{sr?.format || 'N/A'}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                data-uid={sr?.mapId}
+                                                                className="h-8 w-8"
+                                                                onClick={handleViewReport}
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>View Report</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8"
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        if (navigator.share) {
+                                                                            await navigator.share({
+                                                                                title: 'Sales Report',
+                                                                                text: 'Check out this sales report',
+                                                                                url: window.location.href,
+                                                                            });
+                                                                        } else {
+                                                                            await navigator.clipboard.writeText(window.location.href);
+                                                                            toast.success('Link copied to clipboard');
                                                                         }
-                                                                    }}
-                                                                >
-                                                                    <Share2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>Share Report</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
+                                                                    } catch (error) {
+                                                                        console.error('Error sharing:', error);
+                                                                        toast.error('Failed to share');
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <Share2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Share Report</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
                                 )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                                                No reports generated. Please Kindly Refresh Your Page And Try Again
-                                            </TableCell>
-                                        </TableRow>
-                                    )
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            No reports generated. Please Kindly Refresh Your Page And Try Again
+                                        </TableCell>
+                                    </TableRow>
+                                )
                                 }
                             </TableBody>
                         </Table>

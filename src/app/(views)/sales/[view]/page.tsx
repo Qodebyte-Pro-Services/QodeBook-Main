@@ -1,11 +1,11 @@
 import { Overview } from "@/components/dashboard";
-import SalesInvoiceSystem from "@/components/dashboard/sales/invoice/sale-report-invoice";
+import SalesReportDetails from "@/components/dashboard/sales/report-details";
 
 const SalesViewDetail = async ({params}: {params: Promise<{view: string}>}) => {
     const view = (await params)?.view;
     return(
         <Overview>
-            <SalesInvoiceSystem
+            <SalesReportDetails
                 id={view}
             />
         </Overview>

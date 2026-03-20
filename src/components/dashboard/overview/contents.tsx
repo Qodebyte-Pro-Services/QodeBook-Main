@@ -273,11 +273,11 @@ const OverviewContent = () => {
 
     const finance_overview_card = useMemo(() => {
         if (financeOverviewSuccess && !financeOverviewError) {
-            const { netIncome, grossIncome, discounts, productsCount, staffCount, staffWithShiftToday, stockMovement: { movememt_count } } = financeOverviewData as FinanceOverviewResponse;
+            const { netIncome, grossIncome, discounts, totalExpense, productsCount, staffCount, staffWithShiftToday, stockMovement: { movememt_count } } = financeOverviewData as FinanceOverviewResponse;
             return [
                 {
                     id: 1,
-                    title: "Gross Income",
+                    title: "Revenues",
                     amount: +grossIncome,
                     isCurrency: true,
                     icon: RiMoneyDollarBoxLine,
@@ -304,22 +304,31 @@ const OverviewContent = () => {
                 },
                 {
                     id: 4,
-                    title: "Inventory Count",
-                    amount: productsCount,
-                    isCurrency: false,
-                    icon: PiShoppingCartSimpleBold,
-                    isPhoneViewIcon: PiShoppingCartSimpleBold
+                    title: "Expenses",
+                    amount: -totalExpense,
+                    isCurrency: true,
+                    icon: RiMoneyDollarBoxLine,
+                    isPhoneViewIcon: RiMoneyDollarBoxLine,
+                    arrowIcon: ((+totalExpense * 100) / (+grossIncome + +discounts + +netIncome)) ? IoMdArrowUp : IoMdArrowDown
                 },
-                {
-                    id: 5,
-                    title: "Staff On Duty",
-                    isSlash: {
-                        active: staffWithShiftToday,
-                        total: staffCount
-                    },
-                    icon: !isDarkEnabled ? CustomUserGroup : HiUserGroup,
-                    isPhoneViewIcon: HiUserGroup
-                },
+                // {
+                //     id: 4,
+                //     title: "Inventory Count",
+                //     amount: productsCount,
+                //     isCurrency: false,
+                //     icon: PiShoppingCartSimpleBold,
+                //     isPhoneViewIcon: PiShoppingCartSimpleBold
+                // },
+                // {
+                //     id: 5,
+                //     title: "Staff On Duty",
+                //     isSlash: {
+                //         active: staffWithShiftToday,
+                //         total: staffCount
+                //     },
+                //     icon: !isDarkEnabled ? CustomUserGroup : HiUserGroup,
+                //     isPhoneViewIcon: HiUserGroup
+                // },
                 {
                     id: 6,
                     title: "Cost Of Goods",
@@ -360,22 +369,31 @@ const OverviewContent = () => {
             },
             {
                 id: 4,
-                title: "Inventory Count",
+                title: "Expenses",
                 amount: 0,
-                isCurrency: false,
-                icon: PiShoppingCartSimpleBold,
-                isPhoneViewIcon: PiShoppingCartSimpleBold
+                isCurrency: true,
+                icon: RiMoneyDollarBoxLine,
+                isPhoneViewIcon: RiMoneyDollarBoxLine,
+                arrowIcon: IoMdArrowDown
             },
-            {
-                id: 5,
-                title: "Staff On Duty",
-                isSlash: {
-                    active: 0,
-                    total: 0
-                },
-                icon: !isDarkEnabled ? CustomUserGroup : HiUserGroup,
-                isPhoneViewIcon: HiUserGroup
-            },
+            // {
+            //     id: 4,
+            //     title: "Inventory Count",
+            //     amount: 0,
+            //     isCurrency: false,
+            //     icon: PiShoppingCartSimpleBold,
+            //     isPhoneViewIcon: PiShoppingCartSimpleBold
+            // },
+            // {
+            //     id: 5,
+            //     title: "Staff On Duty",
+            //     isSlash: {
+            //         active: 0,
+            //         total: 0
+            //     },
+            //     icon: !isDarkEnabled ? CustomUserGroup : HiUserGroup,
+            //     isPhoneViewIcon: HiUserGroup
+            // },
             {
                 id: 6,
                 title: "Cost Of Goods",

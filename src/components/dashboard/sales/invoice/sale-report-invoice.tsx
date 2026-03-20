@@ -12,11 +12,11 @@ import * as htmlToImage from "html-to-image";
 import { useSalesReport } from '@/hooks/use-localforage';
 import { SalesReportQueryLogic } from '@/lib/storage-utils';
 
-const SalesInvoiceSystem = ({id}: {id: string}) => {
+const SalesInvoiceSystem = ({ id }: { id: string }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [queryString, setQueryString] = useState<string>("");
 
-  const {searchKey, salesReport} = useSalesReportData();
+  const { searchKey, salesReport } = useSalesReportData();
   const { getSalesReportData } = useSalesReport();
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -97,7 +97,7 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
     return storedId ? JSON.parse(storedId) : 0;
   }, []);
 
-  const {data: businessData, isLoading: businessLoading, isSuccess: businessSuccess, isError: businessError} = useQuery({
+  const { data: businessData, isLoading: businessLoading, isSuccess: businessSuccess, isError: businessError } = useQuery({
     queryKey: ["get-user-business", businessId],
     queryFn: () => userBusinessHandler(`${businessId}`),
     enabled: businessId !== 0,
@@ -113,20 +113,20 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
 
   useEffect(() => {
     let isMounted = true;
-    (async() => {
+    (async () => {
       try {
         if (isMounted) {
           const _data = await getSalesReportData(businessId);
           console.log(_data);
           const selectedItem = _data?.find(item => item?.mapId === id);
-          const {query_data} = selectedItem as SalesReportQueryLogic;
+          const { query_data } = selectedItem as SalesReportQueryLogic;
           if (query_data?.has(id)) {
             setQueryString(query_data?.get(id) as string);
             return;
           }
           setQueryString("");
         }
-      }catch(err) {
+      } catch (err) {
         console.log("Error Occurred While Trying To Fetch Sales Queries: ", err);
         setQueryString("");
       }
@@ -136,17 +136,17 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
     }
   }, [id, businessId, getSalesReportData]);
 
-    const salesReportData = useMemo(() => {
-        if (queryString && businessId && branchId) {
-            return {
-                url: `/api/finance/sales-report?${queryString}`,
-                businessId: +businessId,
-                branchId: +branchId
-            }
-        }
-    }, [queryString, businessId, branchId]) as {url: string; businessId: number; branchId: number};
+  const salesReportData = useMemo(() => {
+    if (queryString && businessId && branchId) {
+      return {
+        url: `/api/finance/sales-report?${queryString}`,
+        businessId: +businessId,
+        branchId: +branchId
+      }
+    }
+  }, [queryString, businessId, branchId]) as { url: string; businessId: number; branchId: number };
 
-  const {data: sales_reports, isSuccess: sales_success, isError: sales_error} = useQuery({
+  const { data: sales_reports, isSuccess: sales_success, isError: sales_error } = useQuery({
     queryKey: ["get-sales-report", businessId, branchId],
     queryFn: () => getSalesReport(salesReportData),
     refetchOnWindowFocus: false,
@@ -157,7 +157,7 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
     if (sales_success && !sales_error) {
       return sales_reports || {};
     }
-    return{};
+    return {};
   }, [sales_success, sales_error, sales_reports]) as SalesReportLogic;
 
   const currentOrder = data?.order_details?.[currentPage - 1];
@@ -347,7 +347,7 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
             <ChevronLeft className="w-5 h-5 mr-1" />
             Previous
           </button>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Invoice</span>
             <span className="px-3 py-1 bg-green-600 text-white rounded-lg font-semibold text-sm">
@@ -379,7 +379,7 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -391,7 +391,7 @@ const SalesInvoiceSystem = ({id}: {id: string}) => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>

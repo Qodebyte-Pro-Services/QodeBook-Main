@@ -836,6 +836,7 @@ type FinanceOverviewResponse = {
     budgetByCategory: Array<Record<string, string | number>>;
     grossIncome: number;
     cogs: number;
+    totalExpense: number;
     netIncome: number;
     topProducts: Array<{name: string; units_sold: string; total_sales: string}>;
     discounts: number;

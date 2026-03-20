@@ -3,13 +3,15 @@
 import { DataTableWithNumberPagination } from "@/components/data-table/data-table-with-numbered-pagination";
 import customerColumns from "@/components/data-table/customer-columns";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMemo, useState} from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getCustomers } from "@/api/controllers/get/handler";
 import { RiLoader4Line } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TabList } from "@/components/dashboard";
+import { useCustomStyles } from "@/hooks";
 
 
 type FilterType = 'all' | 'top' | 'returning' | 'walk_in';
@@ -21,7 +23,12 @@ const CustomersTable = () => {
      const [filter, setFilter] = useState<FilterType>('all');
     const [sortBy, setSortBy] = useState<SortType>('created_at');
     const [currentPage, setCurrentPage] = useState(1);
+    const [indicatorStyle, setIndicatorStyle] = useState<{left: number; width: number}>({left: 0, width: 0});
     const LIMIT = 50;
+
+    const filterLabels = ['All Customers', 'Top Customers', 'Returning', 'Walk-in'];
+    const filterValues: FilterType[] = ['all', 'top', 'returning', 'walk_in'];
+    const filterIndex = filterValues.indexOf(filter);
 
 
     const businessId = useMemo(() => {
@@ -69,10 +76,29 @@ const CustomersTable = () => {
         return null;
     }, [customerData, customerSuccess]);
 
-    const handleFilterChange = (newFilter: FilterType) => {
-        setFilter(newFilter);
+    const handleFilterChange = (index: number) => {
+        setFilter(filterValues[index]);
         setCurrentPage(1);
     };
+
+    const listRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const {hiddenScrollbar} = useCustomStyles();
+
+    useEffect(() => {
+        const node = listRefs.current[filterIndex];
+        const containerNode = containerRef.current;
+        if (node && containerNode) {
+            const nodeRect = node.getBoundingClientRect();
+            const containerRect = containerNode.getBoundingClientRect();
+            const padding = 8;
+            setIndicatorStyle({
+                left: (nodeRect.left - containerRect.left + containerNode.scrollLeft - padding / 2),
+                width: nodeRect.width + padding,
+            });
+        }
+    }, [filterIndex]);
 
     const handleSortChange = (newSort: SortType) => {
         setSortBy(newSort);
@@ -126,37 +152,26 @@ const CustomersTable = () => {
                     <CardDescription className="text-xs font-[550] text-muted-foreground">Manage your customer database</CardDescription>
                 </CardHeader>
                     <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <div className="space-y-4">
-                        {/* Filter Buttons */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Filter by Type
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {filterOptions.map((option) => (
-                                    <button
-                                        key={option.value}
-                                        onClick={() => handleFilterChange(option.value)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                            filter === option.value
-                                                ? 'bg-template-primary text-white shadow-md'
-                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                        }`}
-                                        title={option.description}
-                                    >
-                                        {option.label}
-                                    </button>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-2 gap-4 ">
+
+                        <div ref={containerRef} className="w-full h-7 lg:w-fit bg-template-whitesmoke-dim dark:bg-black/60 px-2 rounded-sm relative z-10 overflow-x-auto" style={hiddenScrollbar}>
+                            <div className="min-w-[560px] flex justify-between items-center gap-x-4">
+                                {filterLabels?.map((item, index) => (
+                                    <TabList item={item} index={index} setlistCount={handleFilterChange} key={index} ref={el => {
+                                        if (el) listRefs.current[index] = el
+                                    }} />
                                 ))}
                             </div>
+                            <div className="absolute top-1/2 -translate-y-1/2 bg-white dark:bg-template-primary h-[90%] -z-10 transition-all rounded-sm duration-300 ease-in-out" style={{left: indicatorStyle.left, width: indicatorStyle.width}} />
                         </div>
 
-                        {/* Sort Dropdown */}
-                        <div className="space-y-2">
+                    
+                        <div className=" flex h-7 flex-col items-start lg:items-end mb-4 lg:mb-0 ">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Sort by
                             </label>
                             <Select value={sortBy} onValueChange={(value) => handleSortChange(value as SortType)}>
-                                <SelectTrigger className="w-full md:w-64">
+                                <SelectTrigger className="w-full md:w-30 xl:w-64">
                                     <SelectValue placeholder="Select sort option" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -169,7 +184,6 @@ const CustomersTable = () => {
                             </Select>
                         </div>
 
-                        {/* Pagination Info */}
                         {pagination && (
                             <div className="text-xs text-gray-500 dark:text-gray-400">
                                 Showing {((pagination.current_page - 1) * pagination.limit) + 1}-{Math.min(pagination.current_page * pagination.limit, pagination.total_records)} of {pagination.total_records} customers
