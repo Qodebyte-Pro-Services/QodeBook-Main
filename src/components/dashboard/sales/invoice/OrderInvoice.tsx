@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { useQuery } from "@tanstack/react-query";
-import { userBusinessHandler } from "@/api/controllers/get/handler";
+import { getStaffBusinessData, userBusinessHandler } from "@/api/controllers/get/handler";
 
 interface OrderInvoiceProps {
   orderData: FallbackSalesResponse;
@@ -37,7 +37,7 @@ const OrderInvoice = ({ orderData, onClose, onPrint, onDownload }: OrderInvoiceP
 
     const { data: businessDetails, isLoading: businessLoading, isSuccess: businessSuccess, isError: businessError } = useQuery({
       queryKey: ["get-business-details", businessId],
-      queryFn: () => userBusinessHandler(`${businessId}`),
+      queryFn: () => getStaffBusinessData(`${businessId}`),
       enabled: businessId > 0,
       refetchOnWindowFocus: false,
       refetchOnReconnect: "always",
@@ -401,8 +401,8 @@ const handleDownload = useCallback(
               </div>
               
               {/* Payment Methods */}
-              {orderData.payments.map((payment, index) => (
-                <div key={index} className="text-xs mt-2 pt-2 border-t border-gray-100">
+              {orderData.payments && orderData.payments.length > 0 && orderData.payments.map((payment, index) => (
+                <div key={`payment-${index}-${payment.method}`} className="text-xs mt-2 pt-2 border-t border-gray-100">
                   <div className="flex justify-between">
                     <span className="capitalize">{getPaymentMethod(payment.method)}:</span>
                     <span className="font-medium">

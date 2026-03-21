@@ -106,7 +106,11 @@ const OrderConfirmation = ({ orderData, onClose, onConfirm }: OrderConfirmationP
     const handleMultiplePaymentToggle = (method: string, enabled: boolean) => {
         setMultiplePaymentMethods(prev => {
             if (enabled) {
-                return [...prev, method];
+                // Ensure method is not empty and not already in the array
+                if (method && !prev.includes(method)) {
+                    return [...prev, method];
+                }
+                return prev;
             } else {
                 setPaymentAmounts(prev => ({
                     ...prev,
@@ -195,7 +199,7 @@ const OrderConfirmation = ({ orderData, onClose, onConfirm }: OrderConfirmationP
                                 >
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                                         <div className="flex items-center">
-                                            <img className="w-15 h-15 rounded-md object-contain object-center" src={`${item.image_url[0].secure_url}`} alt="#" />
+                                            <img className="w-15 h-15 rounded-md object-contain object-center" src={item.image_url?.[0]?.secure_url || "/placeholder-product.png"} alt={item.sku || "Product"} />
                                             <div className="flex-1">
                                                 <h4 className="font-medium text-gray-800">{item.sku || `Product #${item.product_id}`}</h4>
                                                 <p className="text-sm text-gray-500">{item?.sku?.split("-")[0] || item?.variant_id}</p>
@@ -372,9 +376,7 @@ const OrderConfirmation = ({ orderData, onClose, onConfirm }: OrderConfirmationP
                                 <div className="flex flex-wrap gap-2">
                                     {multiplePaymentMethods.map((method) => (
                                         <Badge key={method} variant="secondary" className="bg-template-primary/10 text-template-primary text-xs">
-                                            {method === "cash" && "Cash"}
-                                            {method === "card" && "Card"}
-                                            {method === "bank_transfer" && "Bank Transfer"}
+                                            {method === "cash" ? "Cash" : method === "card" ? "Card" : method === "bank_transfer" ? "Bank Transfer" : method}
                                         </Badge>
                                     ))}
                                 </div>
@@ -617,9 +619,7 @@ const OrderConfirmation = ({ orderData, onClose, onConfirm }: OrderConfirmationP
                                     <div className="flex flex-wrap gap-2">
                                         {multiplePaymentMethods.map((method) => (
                                             <Badge key={method} variant="secondary" className="bg-template-primary/10 text-template-primary">
-                                                {method === "cash" && "Cash"}
-                                                {method === "card" && "Card"}
-                                                {method === "bank_transfer" && "Bank Transfer"}
+                                                {method === "cash" ? "Cash" : method === "card" ? "Card" : method === "bank_transfer" ? "Bank Transfer" : method}
                                             </Badge>
                                         ))}
                                     </div>

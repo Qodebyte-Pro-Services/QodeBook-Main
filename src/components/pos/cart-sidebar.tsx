@@ -64,7 +64,7 @@ const SettingsController = ({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="0" className="cursor-pointer">Walk-In Customer</SelectItem>
-                                    {customers.map((c) => (
+                                    {customers.filter(c => c.id !== 0).map((c) => (
                                         <SelectItem key={c.id} value={c.id.toString()} className="cursor-pointer">
                                             {c.name}
                                         </SelectItem>

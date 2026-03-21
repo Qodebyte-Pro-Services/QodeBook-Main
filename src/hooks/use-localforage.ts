@@ -39,8 +39,8 @@ export const useLocalForage = () => {
 
 export const useCartStorage = () => {
     const [cart, setCart] = useState<(ProductVariantResponseObject & {maxQuantity?: number})[]>([]);
-    const [customer, setCustomer] = useState<string>('walk-in');
-    const [storeType, setStoreType] = useState<string>('');
+    const [customer, setCustomer] = useState<string>('0');
+    const [storeType, setStoreType] = useState<string>('walk_in');
     const [isLoading, setIsLoading] = useState(true);
     const [discountsDTC, setDiscountsDTC] = useState<DiscountResponseObj[]>([]);
     const [taxesDTC, setTaxesDTC] = useState<TaxesResponseObj[]>([]);
@@ -65,8 +65,8 @@ export const useCartStorage = () => {
                 ]);
 
                 setCart(savedCart);
-                setCustomer(savedCustomer);
-                setStoreType(savedStoreType);
+                setCustomer(savedCustomer || '0');
+                setStoreType(savedStoreType || 'walk_in');
                 setDiscountsDTC(savedDiscounts as (DiscountResponseObj[] | []));
                 setTaxesDTC(savedTaxes as (TaxesResponseObj[] | []));
                 setCouponsDTC(savedCoupons as (CouponResponseObj[] | []));
@@ -116,15 +116,15 @@ export const useCartStorage = () => {
     
     const clearAll = useCallback(async () => {
         setCart([]);
-        setCustomer('');
-        setStoreType('');
+        setCustomer('0');
+        setStoreType('walk_in');
         setMatchedDiscounts(new Map());
         setMatchedTaxes(new Map());
         setMatchedCoupons(new Map());
         await Promise.all([
             cartUtils.clearCart(),
-            cartUtils.saveCustomer(''),
-            cartUtils.saveStoreType(''),
+            cartUtils.saveCustomer('0'),
+            cartUtils.saveStoreType('walk_in'),
             cartUtils.clearMatchedDTCMaps()
         ]);
     }, []);
