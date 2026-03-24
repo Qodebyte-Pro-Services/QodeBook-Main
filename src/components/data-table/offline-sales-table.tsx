@@ -36,7 +36,7 @@ const ActionsCellHandler = ({row, onSyncSuccess}: {row: {original: OfflineSalesS
 
     const [offlineCustomers, setOfflineCustomers] = useState<CustomerResponse[]>([]);
 
-  const { syncPendingOrders, removeOfflineOrder } = useOfflineOrders();
+  const { removeOfflineOrder } = useOfflineOrders();
 
     
     const businessId = useMemo(() => {
@@ -91,7 +91,7 @@ const ActionsCellHandler = ({row, onSyncSuccess}: {row: {original: OfflineSalesS
             toast.info(`Syncing pending order ${orderData?.id}...`);
             
             // Sync the order to backend directly
-            const response = await submitOfflineOrder(orderData as any);
+            const response = await submitOfflineOrder(orderData as unknown as Parameters<typeof submitOfflineOrder>[0]);
             const syncSucceeded = typeof response === 'boolean' ? response : response?.success;
             
             // Only remove if sync succeeded
