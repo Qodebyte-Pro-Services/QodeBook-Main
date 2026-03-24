@@ -14,7 +14,7 @@ const OfflineSalesTable = ({sales}: {sales: OfflineSalesSchema[]}) => {
                 <CardDescription className="text-xs font-[550] text-muted-foreground">All pending, processing, in transit and canceled orders.</CardDescription>
             </CardHeader>
             <div className="px-4 py-5 bg-white rounded-sm">
-                <DataTableWithNumberPagination columns={offlineSalesColumn} data={sales} filterId="id" placeholderText="Search by Order Name / ID" isShowCost={false} isShowStock={true} displayedText="Pending Orders" />
+                <DataTableWithNumberPagination columns={offlineSalesColumn()} data={sales} filterId="id" placeholderText="Search by Order Name / ID" isShowCost={false} isShowStock={true} displayedText="Pending Orders" />
             </div>
         </div>
     </Card>
