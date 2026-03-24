@@ -78,47 +78,46 @@ const POSHeader: React.FC<POSHeaderProps> = ({
             setIsLoggingOut(true);
             try {
                 if (isStaff) {
-                    await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId }, {
-                        onSuccess(data) {
-                            toast.success(data?.message || "User Logged out Successfully");
-                            Cookies.remove("authToken");
-                            Cookies.remove("authActiveUser");
-                            Cookies.remove("staff_roles");
-                            Cookies.remove("staff_details");
-                            sessionStorage.removeItem("selectedBusinessId");
-                            sessionStorage.removeItem("selectedBranchId");
-                              sessionStorage.removeItem("posSessionElapsedTime");
-                            router.push(`/staff/login/${businessId}`);
-                        },
-                        onError(err) {
-                            throw new Error(err?.message || "Failed to logout");
-                        }
-                    });
+                    try {
+                        await authStaffLogoutHandler.mutateAsync({ business_id: businessId, session_id: staffId });
+                    } catch (err) {
+                        console.warn("Staff logout API error:", err);
+                    }
+                    
+                    Cookies.remove("authToken");
+                    Cookies.remove("authActiveUser");
+                    Cookies.remove("authStaffId");
+                    Cookies.remove("staff_roles");
+                    Cookies.remove("staff_details");
+                    sessionStorage.removeItem("selectedBusinessId");
+                    sessionStorage.removeItem("selectedBranchId");
+                    sessionStorage.removeItem("posSessionElapsedTime");
+                    localStorage.removeItem("posSessionElapsedTime");
+                    router.push(`/staff/login/${businessId}`);
                     return;
                 }
-                await authLogoutHandler.mutateAsync(businessId, {
-                    onSuccess(data) {
-                        toast.success(data?.message || "User Logged out Successfully");
-                        Cookies.remove("authToken");
-                        Cookies.remove("authActiveUser");
-                        sessionStorage.removeItem("selectedBusinessId");
-                        sessionStorage.removeItem("selectedBranchId");
-                          sessionStorage.removeItem("posSessionElapsedTime");
-                        router.push("/login");
-                    },
-                    onError(err) {
-                        throw new Error(err?.message || "Failed to logout");
-                    },
-                    onSettled() {
-                        setIsLoggingOut(false);
-                    }
-                });
+                
+                try {
+                    await authLogoutHandler.mutateAsync(businessId);
+                } catch (err) {
+                    console.warn("Admin logout API error:", err);
+                }
+                
+                Cookies.remove("authToken");
+                Cookies.remove("authActiveUser");
+                sessionStorage.removeItem("selectedBusinessId");
+                sessionStorage.removeItem("selectedBranchId");
+                sessionStorage.removeItem("posSessionElapsedTime");
+                localStorage.removeItem("posSessionElapsedTime");
+                router.push("/login");
             } catch (err) {
                 if (err instanceof Error) {
                     toast.error(err?.message || "Failed to logout");
                     return;
                 }
                 toast.error("Failed to logout");
+            } finally {
+                setIsLoggingOut(false);
             }
         }, [businessId, isStaff, staffId, authLogoutHandler, authStaffLogoutHandler, router]);
 
@@ -131,13 +130,35 @@ const POSHeader: React.FC<POSHeaderProps> = ({
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-     useEffect(() => {
+    useEffect(() => {
         const interval = setInterval(() => {
-            setElapsedTime(prev => prev + 1);
-            localStorage.setItem("posSessionElapsedTime", (elapsedTime + 1).toString());
+            setElapsedTime(prev => {
+                const nextTime = prev + 1;
+                if (nextTime % 10 === 0) {
+                    localStorage.setItem("posSessionElapsedTime", nextTime.toString());
+                }
+                return nextTime;
+            });
         }, 1000);
         return () => clearInterval(interval);
-    }, [elapsedTime]);
+    }, []);
+
+    const lastActivityResetRef = React.useRef<number>(Date.now());
+
+    useEffect(() => {
+        const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+        const handleActivity = () => {
+            const now = Date.now();
+            if (now - lastActivityResetRef.current >= 5000) {
+                lastActivityResetRef.current = now;
+                setElapsedTime(0);
+                localStorage.setItem("posSessionElapsedTime", "0");
+            }
+        };
+
+        activityEvents.forEach(event => document.addEventListener(event, handleActivity, true));
+        return () => activityEvents.forEach(event => document.removeEventListener(event, handleActivity, true));
+    }, []);
     
    
     useEffect(() => {
@@ -145,6 +166,14 @@ const POSHeader: React.FC<POSHeaderProps> = ({
             const staffSettings = ViewStaffBusinessSettings.data?.staff_settings || ViewStaffBusinessSettings.data;
             const timeoutMinutes = staffSettings?.session_timeout_minutes || 480; 
             setSessionTimeoutMinutes(timeoutMinutes);
+            localStorage.setItem("posSessionTimeoutMinutes", timeoutMinutes.toString());
+        } else if (isStaff) {
+            const cachedTimeout = localStorage.getItem("posSessionTimeoutMinutes");
+            if (cachedTimeout) {
+                setSessionTimeoutMinutes(parseInt(cachedTimeout, 10));
+            } else {
+                setSessionTimeoutMinutes(480);
+            }
         }
     }, [isStaff, ViewStaffBusinessSettings?.isSuccess, ViewStaffBusinessSettings?.data]);
 
@@ -152,7 +181,7 @@ const POSHeader: React.FC<POSHeaderProps> = ({
     useEffect(() => {
         if (!isStaff || !sessionTimeoutMinutes || hasTimedOut) return;
 
-        const timeoutInSeconds = sessionTimeoutMinutes * 60;
+        const timeoutInSeconds = (sessionTimeoutMinutes * 60) - 60;
         
         if (elapsedTime > 0 && elapsedTime >= timeoutInSeconds) {
             setHasTimedOut(true);

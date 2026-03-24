@@ -288,6 +288,14 @@ const DashboardHeader = () => {
             const staffSettings = ViewStaffBusinessSettings.data?.staff_settings || ViewStaffBusinessSettings.data;
             const timeoutMinutes = staffSettings?.session_timeout_minutes || 480; 
             setSessionTimeoutMinutes(timeoutMinutes);
+            localStorage.setItem("posSessionTimeoutMinutes", timeoutMinutes.toString());
+        } else if (isStaff) {
+            const cachedTimeout = localStorage.getItem("posSessionTimeoutMinutes");
+            if (cachedTimeout) {
+                setSessionTimeoutMinutes(parseInt(cachedTimeout, 10));
+            } else {
+                setSessionTimeoutMinutes(480);
+            }
         }
     }, [isStaff, ViewStaffBusinessSettings?.isSuccess, ViewStaffBusinessSettings?.data]);
 
@@ -299,7 +307,7 @@ const DashboardHeader = () => {
 
         if (isStaff) {
             if (!sessionTimeoutMinutes) return;
-            timeoutInSeconds = sessionTimeoutMinutes * 60;
+            timeoutInSeconds = (sessionTimeoutMinutes * 60) - 60;
         } else {
             timeoutInSeconds = 30 * 60;
         }
