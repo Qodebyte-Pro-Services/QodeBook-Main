@@ -220,6 +220,7 @@ type ProductVariantResponse = {
 type ProductVariantResponseObject = {
     id: number,
     product_id: number,
+    category_id?: number;
     attributes: Array<{
             name: string,
             value: string,

@@ -60,9 +60,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({
         return variants.filter((v: ProductVariantResponseObject) => {
             const matchesSearch = v.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const matchesCategory = selectedCategory === "all" ||
-                (v as any)?.product_id === Number(selectedCategory)
-
+        const matchesCategory = selectedCategory === "all" ||
+             String(v?.category_id) === String(selectedCategory)
             return matchesSearch && matchesCategory;
         });
     }, [variants, searchQuery, selectedCategory]);

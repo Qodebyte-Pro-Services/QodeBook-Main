@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { useQuery } from "@tanstack/react-query";
-import { getSalesById } from "@/api/controllers/get/handler";
+import { getSalesById, userBusinessHandler, getStaffBusinessData } from "@/api/controllers/get/handler";
+import Cookies from "js-cookie";
 import { CustomerResponse, SalesItemsLogic } from "@/models/types/shared/handlers-type";
 import { OfflineSalesSchema } from "@/components/data-table/offline-sales-table";
+import { useStaffBusinessData, useUserBusinesses } from "@/hooks/useControllers";
 
 interface SalesInvoiceProps {
     sale: OfflineSalesSchema &
@@ -37,6 +39,47 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [activeAction, setActiveAction] = useState<string | null>(null);
+
+    const businessId = useMemo(() => {
+        if (typeof window === "undefined") return 0;
+        const selectedBusinessId = sessionStorage.getItem("selectedBusinessId");
+        return selectedBusinessId ? +selectedBusinessId : 0;
+    }, []);
+
+    const isStaff = useMemo(() => {
+        if (typeof window === "undefined") return false;
+        return Cookies.get("authActiveUser")?.toLowerCase() === "staff";
+    }, []);
+
+    const { staffdata, isStaffSuccess, isStaffError } = useStaffBusinessData(isStaff, `${businessId}`);
+    const { data: userBusinessesData, isSuccess: userBusinessSuccess, isError: userBusinessError } = useUserBusinesses();
+
+    const business_details = useMemo(() => {
+        let details = null;
+        if (isStaff) {
+            if (isStaffSuccess && !isStaffError) {
+                details = staffdata?.business;
+            }
+        } else {
+            if (userBusinessSuccess && !userBusinessError) {
+                details = userBusinessesData?.businesses?.find((b: any) => b.id === businessId) || userBusinessesData?.businesses?.[0];
+            }
+        }
+        
+        if (details) return details;
+        
+        // Try fallback to localstorage
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem(`business_details_${businessId}`);
+            if (cached) {
+                try {
+                    return JSON.parse(cached);
+                } catch(e) {}
+            }
+        }
+        
+        return null;
+    }, [isStaff, staffdata, isStaffSuccess, isStaffError, userBusinessesData, userBusinessSuccess, userBusinessError, businessId]);
 
     const resetActiveAction = useCallback(() => {
         setActiveAction(null);
@@ -244,17 +287,27 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
                     </div>
                 </div>
 
-                {/* Logo and Barcode */}
                 <div
-                    className="border py-1 px-4 flex flex-col gap-y-0.5 items-center my-2"
+                    className="border py-1 px-4 flex flex-col gap-y-0.5 items-center my-2 dark:border-white/50"
                     style={{ borderColor: "#40922c" }}>
                     <Image
+                        width={1000}
+                        height={1000}
+                        className="w-[250px] h-[50px] print:w-[160px] print:h-[35px] mx-auto object-contain object-center"
+                        src={business_details?.logo_url || "/images/image 790.png"}
+                        alt="Logo"
+                    />
+                    <div className="text-xs text-center text-gray-600 dark:text-white/50 mt-1">
+                        {business_details?.name || 'QodeBook Sass'}
+                    </div>
+                </div>
+                    {/* <Image
                         width={150}
                         height={150}
                         className="w-[110px] h-[28px] print:w-[160px] print:h-[35px] mx-auto object-contain object-center"
                         src="/images/image 790.png"
                         alt="Logo"
-                    />
+                    /> */}
                     <div className="text-xs text-center text-gray-600 mt-1">
                         {sale?.id || "QodeBook Sass"}
                     </div>
@@ -570,7 +623,6 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 

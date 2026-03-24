@@ -149,7 +149,6 @@ export const useCartStorage = () => {
 
 export const useOfflineOrders = () => {
     const [pendingOrders, setPendingOrders] = useState<any[]>([]);
-
     const loadPendingOrders = useCallback(async () => {
         const orders = await offlineOrders.getOfflineOrders();
         setPendingOrders(orders);
@@ -192,6 +191,17 @@ export const useOfflineOrders = () => {
         return success;
     }, [loadPendingOrders]);
 
+    const removeOfflineOrder = useCallback(async (orderId: string) => {
+        const isRemoved = await offlineOrders.removeOfflineOrder(orderId);
+        if (isRemoved) {
+            toast.success('Pending order removed successfully');
+            await loadPendingOrders();
+            return true;
+        }
+        toast.error('Failed to remove pending order');
+        return false;
+    }, [loadPendingOrders]);
+
     useEffect(() => {
         loadPendingOrders();
     }, [loadPendingOrders]);
@@ -200,7 +210,8 @@ export const useOfflineOrders = () => {
         pendingOrders,
         createOrder,
         syncPendingOrders,
-        loadPendingOrders
+        loadPendingOrders,
+        removeOfflineOrder
     };
 };
 

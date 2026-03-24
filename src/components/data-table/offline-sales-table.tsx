@@ -3,13 +3,12 @@ import { DataTableColumnHeader } from "./data-table-column-header";
 import { BadgeTwo } from "../ui/badge-two";
 import { FlexibleDataTableRowActions } from "./flexible-data-row-actions";
 import { DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOfflineCustomers, useOfflineOrders } from "@/hooks/use-localforage";
 import { CustomerResponse } from "@/models/types/shared/handlers-type";
 import OfflineSalesInvoice from "../dashboard/sales/invoice/OfflineSalesInvoice";
 import { toast } from "sonner";
 import { submitOfflineOrder } from "@/api/controllers/post/orders";
-import { useRouter } from "next/navigation";
 
 export type OfflineSalesSchema = {
     branch_id: number;
@@ -29,16 +28,16 @@ export type OfflineSalesSchema = {
     taxes: number;
 }
 
-const ActionsCellHandler = ({row}: {row: {original: OfflineSalesSchema}}) => {
+const ActionsCellHandler = ({row, onSyncSuccess}: {row: {original: OfflineSalesSchema}; onSyncSuccess?: () => void | Promise<void>}) => {
     const [isViewDetailsOpen, setIsViewDetailsOpen] = useState<boolean>(false);
     const [isSyncing, setIsSyncing] = useState<boolean>(false);
     
     const { getOfflineCustomers} = useOfflineCustomers();
-    const router = useRouter();
 
     const [offlineCustomers, setOfflineCustomers] = useState<CustomerResponse[]>([]);
 
-    const {syncPendingOrders} = useOfflineOrders();
+  const { syncPendingOrders, removeOfflineOrder } = useOfflineOrders();
+
     
     const businessId = useMemo(() => {
         if (typeof window === "undefined") return;
@@ -89,24 +88,34 @@ const ActionsCellHandler = ({row}: {row: {original: OfflineSalesSchema}}) => {
         const orderData = data;
         setIsSyncing(true);
         try {
-            toast.info(`Syncing ${[orderData]?.length} pending orders...`);
-            const res = await syncPendingOrders(async (prev) => {
-                if (prev?.id === orderData?.id) {
-                    return (await submitOfflineOrder(prev));
+            toast.info(`Syncing pending order ${orderData?.id}...`);
+            
+            // Sync the order to backend directly
+            const response = await submitOfflineOrder(orderData as any);
+            const syncSucceeded = typeof response === 'boolean' ? response : response?.success;
+            
+            // Only remove if sync succeeded
+            if (syncSucceeded) {
+                await removeOfflineOrder(orderData?.id);
+                
+                // Call parent callback to trigger table re-render
+                if (onSyncSuccess) {
+                    await onSyncSuccess();
                 }
-                return prev;
-            });
-            console.log(res);
-            // if ((res as {success: boolean})?.success) {
-            //     toast.success('Orders synced successfully');
-            // }
-            startTransition(async () => {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                router.refresh();
-            });
+                
+                toast.success('Order synced successfully', {
+                    description: `Order ${orderData?.id} has been synced to the server`
+                });
+            } else {
+                toast.error('Failed to sync order', {
+                    description: 'The order could not be synced. Please check your connection and try again.'
+                });
+            }
         } catch (error) {
             console.log(error);
-            toast.error('Failed to sync orders');
+            toast.error('Failed to sync orders', {
+                description: 'An unexpected error occurred during sync'
+            });
         } finally {
             setIsSyncing(false);
         }
@@ -158,7 +167,7 @@ const ActionsCellHandler = ({row}: {row: {original: OfflineSalesSchema}}) => {
     )
 };
 
-const offlineSalesColumn: ColumnDef<OfflineSalesSchema>[] = [
+const createOfflineSalesColumns = (onSyncSuccess?: () => void | Promise<void>): ColumnDef<OfflineSalesSchema>[] => [
     {
         accessorKey: "id",
         header: ({column}) => <DataTableColumnHeader column={column} title="Invoice No" />,
@@ -202,8 +211,8 @@ const offlineSalesColumn: ColumnDef<OfflineSalesSchema>[] = [
     },
     {
         id: "actions",
-        cell: ({row}) => <ActionsCellHandler row={row} />
+        cell: ({row}) => <ActionsCellHandler row={row} onSyncSuccess={onSyncSuccess} />
     }
 ];
 
-export default offlineSalesColumn;
+export default createOfflineSalesColumns;

@@ -14,7 +14,8 @@ import { Loader2 } from "lucide-react";
 import { SalesSchema } from "@/store/data/sales-table-data";
 import * as htmlToImage from "html-to-image";
 import { useQuery } from "@tanstack/react-query";
-import { getBusinessBranches, getSalesById, userBusinessHandler } from "@/api/controllers/get/handler";
+import { getBusinessBranches, getSalesById, userBusinessHandler, getStaffBusinessData } from "@/api/controllers/get/handler";
+import Cookies from "js-cookie";
 import { SalesItemsLogic } from "@/models/types/shared/handlers-type";
 
 interface SalesInvoiceProps {
@@ -35,9 +36,16 @@ const SalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
     return selectedBusinessId ? +selectedBusinessId : 0;
   }, []);
 
+  const isStaff = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Cookies.get("authActiveUser")?.toLowerCase() === "staff";
+  }, []);
+
   const { data: businessDetails, isLoading: businessLoading, isSuccess: businessSuccess, isError: businessError } = useQuery({
-    queryKey: ["get-business-details", businessId],
-    queryFn: () => userBusinessHandler(`${businessId}`),
+    queryKey: ["get-business-details", businessId, isStaff],
+    queryFn: () => isStaff 
+      ? getStaffBusinessData(`${businessId}`) 
+      : userBusinessHandler(`${businessId}`),
     enabled: businessId > 0,
     refetchOnWindowFocus: false,
     refetchOnReconnect: "always",

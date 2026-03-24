@@ -6,21 +6,31 @@ import { TabList } from "..";
 import { useCustomStyles } from "@/hooks";
 import { DataTableWithNumberPagination } from "@/components/data-table/data-table-with-numbered-pagination";
 import { OfflineSalesSchema } from "@/components/data-table/offline-sales-table";
-import offlineSalesColumn from "@/components/data-table/offline-sales-table";
+import createOfflineSalesColumns from "@/components/data-table/offline-sales-table";
+import { useOfflineOrders } from "@/hooks/use-localforage";
 import { motion } from "framer-motion";
 import { ArrowBigLeftDash } from "lucide-react";
 import { useViewTransaction } from "@/store/state/lib/pos-state-manager";
 
 interface PosStaffPendingSaleTableProps {
-    orders: OfflineSalesSchema[];
+    orders?: OfflineSalesSchema[];
 }
 
-const PosStaffPendingSaleTable: React.FC<PosStaffPendingSaleTableProps> = ({ orders }) => {
+const PosStaffPendingSaleTable: React.FC<PosStaffPendingSaleTableProps> = ({ orders: propOrders }) => {
     const [lists] = useState<Array<string>>(["All", "Cash", "Bank-transfer", "Card"]);
     const [activeList, setActiveList] = useState<number>(0);
     const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
 
     const { setView } = useViewTransaction();
+    const { pendingOrders, loadPendingOrders } = useOfflineOrders();
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        loadPendingOrders().finally(() => setIsLoaded(true));
+    }, [loadPendingOrders]);
+    
+    // Use hook's pendingOrders once loaded, fallback to prop initially
+    const orders = isLoaded ? pendingOrders : (propOrders || pendingOrders || []);
 
     const salesData = useMemo(() => {
         const statusItem = lists[activeList];
@@ -97,7 +107,7 @@ const PosStaffPendingSaleTable: React.FC<PosStaffPendingSaleTableProps> = ({ ord
                             </div>
                         </div>
                         <div className="px-4 py-5 bg-white dark:bg-black rounded-sm">
-                            <DataTableWithNumberPagination columns={offlineSalesColumn} data={salesData} isLoading={false} filterId="id" placeholderText="Search by ID" isShowCost={false} isShowStock={true} displayedText="Pending Sales" />
+                            <DataTableWithNumberPagination columns={createOfflineSalesColumns(loadPendingOrders)} data={salesData} isLoading={false} filterId="id" placeholderText="Search by ID" isShowCost={false} isShowStock={true} displayedText="Pending Sales" />
                         </div>
                     </div>
                 </CardContent>

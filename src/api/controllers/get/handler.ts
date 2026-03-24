@@ -649,6 +649,23 @@ const getSales = async ({businessId}: {businessId: number}) => {
     }
 }
 
+
+const getStaffDailySalesAndKpis = async ({businessId}: {businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/staff_sales_kpis`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error occurred while fetching staff daily sales and KPIs");
+        }
+        throw new Error("An unexpected error occurred while fetching staff daily sales and KPIs");
+    }
+}
+
 const getSalesReport = async ({url, businessId, branchId}: {url: string; businessId: number; branchId: number}) => {
     try {
         const response = await axiosInstance.get(url, {
@@ -1225,6 +1242,7 @@ export {
     getSalesReport,
     getSalesAnalytics,
     getSalesAnalyticsData,
+    getStaffDailySalesAndKpis,
     getInventoryTotalVariants,
     getFastMovingStocks,
     getSupplyOrdersById,

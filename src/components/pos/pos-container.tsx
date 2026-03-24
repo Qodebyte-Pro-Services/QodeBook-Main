@@ -16,6 +16,8 @@ import DraftsModal from "./drafts-modal";
 import { useViewTransaction } from "@/store/state/lib/pos-state-manager";
 import PosStaffSalesTable from "../dashboard/tables/pos-staff-sale-table";
 import PosStaffPendingSaleTable from "../dashboard/tables/pos-staff-pending-sale-table";
+import Cookies from "js-cookie";
+import { useStaffBusinessData, useUserBusinesses } from "@/hooks/useControllers";
 // No icons needed for the completion modal anymore
 
 const POSContainer: React.FC = () => {
@@ -49,6 +51,33 @@ const POSContainer: React.FC = () => {
         isOnline,
         handlers
     } = usePOSLogic();
+
+    const isStaff = React.useMemo(() => {
+        if (typeof window === "undefined") return false;
+        return Cookies.get("authActiveUser")?.toLowerCase() === "staff";
+    }, []);
+
+    const { staffdata, isStaffSuccess, isStaffError } = useStaffBusinessData(isStaff, `${businessId}`);
+    const { data: userBusinessesData, isSuccess: userBusinessSuccess, isError: userBusinessError } = useUserBusinesses();
+
+    React.useEffect(() => {
+        if (typeof window === "undefined" || !businessId) return;
+        
+        if (isStaff && isStaffSuccess && !isStaffError && staffdata?.business) {
+            localStorage.setItem(`business_details_${businessId}`, JSON.stringify({
+                name: staffdata.business.name,
+                logo_url: staffdata.business.logo_url
+            }));
+        } else if (!isStaff && userBusinessSuccess && !userBusinessError && userBusinessesData?.businesses) {
+            const business = userBusinessesData.businesses.find((b: any) => b.id === businessId) || userBusinessesData.businesses[0];
+            if (business) {
+                localStorage.setItem(`business_details_${businessId}`, JSON.stringify({
+                    name: business.name,
+                    logo_url: business.logo_url
+                }));
+            }
+        }
+    }, [isStaff, isStaffSuccess, isStaffError, staffdata, userBusinessSuccess, userBusinessError, userBusinessesData, businessId]);
 
     return (
         <AnimatePresence mode="wait">
