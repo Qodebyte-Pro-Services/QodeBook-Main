@@ -13,7 +13,8 @@ import {
     taxCache,
     couponCache,
     isOnline,
-    networkUtils
+    networkUtils,
+    productCache
 } from "@/lib/storage-utils";
 import {
     prepareOrderData,
@@ -139,6 +140,7 @@ export const usePOSLogic = () => {
     const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
     const [pendingOrderData, setPendingOrderData] = useState<OrderSubmissionData | null>(null);
     const [invoiceData, setInvoiceData] = useState<FallbackSalesResponse | null>(null);
+    const [offlineInvoiceData, setOfflineInvoiceData] = useState<any | null>(null);
     const [drafts, setDrafts] = useState<any[]>([]);
 
     const fetchDrafts = useCallback(async () => {
@@ -430,6 +432,11 @@ export const usePOSLogic = () => {
                 const result = await submitOfflineOrder(orderDataWithPayment) as { success: boolean; _data: FallbackSalesResponse };
                 if (result?.success) {
                     toast.success("Order created successfully!");
+                    
+                    for (const item of selectedVariants) {
+                        await productCache.decrementVariantStock(businessId.toString(), item.id, item.quantity);
+                    }
+                    
                     queryClient.invalidateQueries({ queryKey: ["get-business-variants", businessId] });
                     setInvoiceData(result._data);
                     await clearCart();
@@ -445,6 +452,19 @@ export const usePOSLogic = () => {
             const result = await createOrder(orderDataWithPayment);
             if (result.success) {
                 toast.info("Order saved offline");
+                
+                for (const item of selectedVariants) {
+                    await productCache.decrementVariantStock(businessId.toString(), item.id, item.quantity);
+                }
+                
+                const customer = (customers?.customers as any[])?.find((c: any) => c.id == selectedCustomer);
+                setOfflineInvoiceData({
+                    ...result.data,
+                    customer_name: customer?.name || "Walk-In",
+                    customer_email: customer?.email || "N/A",
+                    customer_phone: customer?.phone || "N/A"
+                });
+                
                 await clearCart();
                 setShowOrderConfirmation(false);
                 setPendingOrderData(null);
@@ -541,6 +561,8 @@ export const usePOSLogic = () => {
         setPendingOrderData,
         invoiceData,
         setInvoiceData,
+        offlineInvoiceData,
+        setOfflineInvoiceData,
         drafts,
         pendingOrders,
         isOnline: isOnlineState,

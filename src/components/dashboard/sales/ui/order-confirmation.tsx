@@ -426,6 +426,7 @@ const OrderConfirmation = ({ orderData, onClose, onConfirm }: OrderConfirmationP
             <AnimatePresence>
                 {showMultiplePaymentModal && (
                     <motion.div
+                        key="multiple-payment-modal-overlay"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

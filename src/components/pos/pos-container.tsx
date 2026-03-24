@@ -8,6 +8,7 @@ import CartSidebar from "./cart-sidebar";
 import { usePOSLogic } from "@/hooks/use-pos-logic";
 import { OrderConfirmation } from "@/components/dashboard/sales/ui";
 import OrderInvoice from "@/components/dashboard/sales/invoice/OrderInvoice";
+import OfflineSalesInvoice from "@/components/dashboard/sales/invoice/OfflineSalesInvoice";
 import CustomerForm from "@/components/dashboard/customers/forms/add-customer-form";
 import OrderSettingsModal from "./order-settings-modal";
 import { AnimatePresence, motion } from "framer-motion";
@@ -46,6 +47,8 @@ const POSContainer: React.FC = () => {
         pendingOrderData,
         invoiceData,
         setInvoiceData,
+        offlineInvoiceData,
+        setOfflineInvoiceData,
         drafts,
         pendingOrders,
         isOnline,
@@ -180,6 +183,7 @@ const POSContainer: React.FC = () => {
                     <AnimatePresence>
                         {showOrderSettings && (
                             <OrderSettingsModal
+                                key="order-settings-modal"
                                 isOpen={showOrderSettings}
                                 onClose={() => setShowOrderSettings(false)}
                                 customers={customers}
@@ -195,7 +199,7 @@ const POSContainer: React.FC = () => {
                         )}
 
                         {showOrderConfirmation && pendingOrderData && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <div key="order-confirmation-overlay" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                                 <OrderConfirmation
                                     onClose={() => setShowOrderConfirmation(false)}
                                     onConfirm={handlers.handleConfirmOrder}
@@ -221,6 +225,7 @@ const POSContainer: React.FC = () => {
 
                         {invoiceData && (
                             <motion.div
+                                key="online-invoice-modal"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -230,8 +235,21 @@ const POSContainer: React.FC = () => {
                             </motion.div>
                         )}
 
+                        {offlineInvoiceData && (
+                            <motion.div
+                                key="offline-invoice-modal"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[110]"
+                            >
+                                <OfflineSalesInvoice sale={offlineInvoiceData as any} onClose={() => setOfflineInvoiceData(null)} />
+                            </motion.div>
+                        )}
+
                         {showCustomerForm && (
                             <CustomerForm
+                                key="customer-form-modal"
                                 business_id={`${businessId}`}
                                 handleFormClose={() => setShowCustomerForm(false)}
                             />
@@ -247,9 +265,9 @@ const POSContainer: React.FC = () => {
                     />
                 </motion.div>
             ) : view === "sales" ? (
-                <PosStaffSalesTable />
+                <PosStaffSalesTable key="sales-history-view" />
             ) : (
-                <PosStaffPendingSaleTable orders={pendingOrders} />
+                <PosStaffPendingSaleTable key="pending-orders-view" orders={pendingOrders} />
             )}
         </AnimatePresence>
     );

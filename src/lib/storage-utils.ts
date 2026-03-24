@@ -364,6 +364,37 @@ export const productCache = {
             console.error('Failed to get cached variants:', error);
             return [];
         }
+    },
+
+    async decrementVariantStock(businessId: string, variantId: number, decrementBy: number): Promise<boolean> {
+        try {
+            const keys = await productStorage.keys();
+            const relevantKeys = keys.filter(k => k.startsWith(`${STORAGE_KEYS.VARIANTS}_${businessId}_`));
+            
+            let updated = false;
+            for (const key of relevantKeys) {
+                const cached = await productStorage.getItem<{data: ProductVariantResponseObject[], timestamp: number}>(key);
+                if (cached && cached.data) {
+                    let hasChanges = false;
+                    const newData = cached.data.map(v => {
+                        if (v.id === variantId) {
+                            hasChanges = true;
+                            return { ...v, quantity: Math.max(0, v.quantity - decrementBy) };
+                        }
+                        return v;
+                    });
+                    
+                    if (hasChanges) {
+                        await productStorage.setItem(key, { ...cached, data: newData });
+                        updated = true;
+                    }
+                }
+            }
+            return updated;
+        } catch (error) {
+            console.error('Failed to decrement variant stock:', error);
+            return false;
+        }
     }
 };
 
