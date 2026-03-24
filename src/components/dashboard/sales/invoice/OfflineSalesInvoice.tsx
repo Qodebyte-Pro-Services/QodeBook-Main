@@ -62,7 +62,7 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
             }
         } else {
             if (userBusinessSuccess && !userBusinessError) {
-                details = userBusinessesData?.businesses?.find((b: any) => b.id === businessId) || userBusinessesData?.businesses?.[0];
+                details = userBusinessesData?.businesses?.find((b: { id: number | string; [key: string]: unknown }) => b.id === businessId) || userBusinessesData?.businesses?.[0];
             }
         }
         
@@ -74,7 +74,7 @@ const OfflineSalesInvoice = ({ sale, onClose, onPrint }: SalesInvoiceProps) => {
             if (cached) {
                 try {
                     return JSON.parse(cached);
-                } catch(e) {}
+                } catch (_) {}
             }
         }
         

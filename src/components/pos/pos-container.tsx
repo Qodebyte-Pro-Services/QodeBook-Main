@@ -69,7 +69,7 @@ const POSContainer: React.FC = () => {
                 logo_url: staffdata.business.logo_url
             }));
         } else if (!isStaff && userBusinessSuccess && !userBusinessError && userBusinessesData?.businesses) {
-            const business = userBusinessesData.businesses.find((b: any) => b.id === businessId) || userBusinessesData.businesses[0];
+            const business = userBusinessesData.businesses.find((b: {id: number | string; [key: string]: unknown}) => b.id === businessId) || userBusinessesData.businesses[0];
             if (business) {
                 localStorage.setItem(`business_details_${businessId}`, JSON.stringify({
                     name: business.name,
