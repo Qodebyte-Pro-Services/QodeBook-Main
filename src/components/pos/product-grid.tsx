@@ -118,8 +118,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                         {filteredVariants.map((variant: ProductVariantResponseObject) => (
                             <div
                                 key={variant.id}
-                                onClick={() => onAddToCart(variant)}
-                                className="group bg-white rounded-2xl border border-gray-100 hover:shadow-xl hover:shadow-gray-200/50 transition-all cursor-pointer relative flex flex-col"
+                                onClick={() => variant.quantity > 0 && onAddToCart(variant)}
+                                className={cn(
+                                    "group bg-white rounded-2xl border border-gray-100 transition-all relative flex flex-col",
+                                    variant.quantity > 0
+                                        ? "hover:shadow-xl hover:shadow-gray-200/50 cursor-pointer"
+                                        : "opacity-60 cursor-not-allowed grayscale-[0.5]"
+                                )}
                             >
                                 <div className="aspect-square rounded-lg bg-gray-50 mb-3 overflow-hidden relative">
                                     <Image
@@ -128,8 +133,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                                         fill
                                         className="object-cover object-center aspect-video rounded-lg p-4 group-hover:scale-110 transition-transform duration-300"
                                     />
-                                    {variant.quantity <= (variant.threshold || 5) && (
-                                        <span className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-1 rounded-full">
+                                    {variant.quantity <= 0 ? (
+                                        <span className="absolute top-2 right-2 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm border border-red-200">
+                                            Out of Stock
+                                        </span>
+                                    ) : variant.quantity <= (variant.threshold || 5) && (
+                                        <span className="absolute top-2 right-2 bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm border border-orange-200">
                                             Low Stock: {variant.quantity}
                                         </span>
                                     )}
@@ -144,12 +153,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                                     </p>
                                 </div>
 
-                                <div className="mt-3 px-3 pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button className="w-full bg-template-primary text-white py-2 rounded-xl cursor-pointer text-xs font-bold flex items-center justify-center gap-2">
-                                        <PiPlusBold size={14} />
-                                        Add to Cart
-                                    </button>
-                                </div>
+                                {variant.quantity > 0 && (
+                                    <div className="mt-3 px-3 pb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button className="w-full bg-template-primary text-white py-2 rounded-xl cursor-pointer text-xs font-bold flex items-center justify-center gap-2">
+                                            <PiPlusBold size={14} />
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

@@ -327,11 +327,19 @@ export const usePOSLogic = () => {
 
         const existing = selectedVariants.find((item) => item.id === variant.id);
         if (existing) {
+            if (existing.quantity >= variant.quantity) {
+                toast.error(`Only ${variant.quantity} items available in stock`);
+                return;
+            }
             const newCart = selectedVariants.map((item) =>
                 item.id === variant.id ? { ...item, quantity: item.quantity + 1 } : item
             );
             await setSelectedVariants(newCart);
         } else {
+            if (variant.quantity <= 0) {
+                toast.error("This product is out of stock");
+                return;
+            }
             const newCart = [...selectedVariants, { ...variant, quantity: 1, maxQuantity: variant.quantity }];
             await setSelectedVariants(newCart);
         }
