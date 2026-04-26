@@ -181,7 +181,6 @@ const InventoryContent = () => {
 
     const [restockProductId, setRestockProductId] = useState<string>("");
 
-    const [icons] = useState<IconType[]>([...Array(4).fill(PiShoppingCartSimple).concat(Array(2).fill(TbCurrencyNaira))])
 
     const [totalStocks, setTotalStocks] = useState<ProductViewCardType>({
         id: "",
@@ -224,6 +223,54 @@ const InventoryContent = () => {
     });
 
     const [totalStockUnits, setTotalStockUnits] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgTotalStocks, setKgTotalStocks] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgOutOfStock, setKgOutOfStock] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgLowStock, setKgLowStock] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgInStock, setKgInStock] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgInventoryValue, setKgInventoryValue] = useState<ProductViewCardType>({
+        id: "",
+        name: "",
+        amount: 0,
+        isCurrency: false,
+        quantity: 0
+    });
+
+    const [kgPotentialSales, setKgPotentialSales] = useState<ProductViewCardType>({
         id: "",
         name: "",
         amount: 0,
@@ -465,7 +512,7 @@ const InventoryContent = () => {
                     quantity: 0,
                     unit: ""
                 }
-                const totalStocks = {
+                const totalStocksData = {
                     id: 6,
                     name: "Total Inventory Units",
                     amount: stockAnalytics?.totalStock,
@@ -473,13 +520,72 @@ const InventoryContent = () => {
                     quantity: 0,
                     unit: "Units"
                 }
+
+                // KG Data
+                const kg_in_stock_data = {
+                    id: 7,
+                    name: "In KG Stock",
+                    amount: stockAnalytics?.kgInStock,
+                    isCurrency: false,
+                    quantity: 0,
+                    unit: "KG"
+                }
+                const kg_out_of_stock_data = {
+                    id: 8,
+                    name: "Out of KG Stock",
+                    amount: stockAnalytics?.kgOutOfStock,
+                    isCurrency: false,
+                    quantity: 0,
+                    unit: "KG"
+                }
+                const kg_low_stock_data = {
+                    id: 9,
+                    name: "Low KG Stock",
+                    amount: stockAnalytics?.kgLowStock,
+                    isCurrency: false,
+                    quantity: 0,
+                    unit: "KG"
+                }
+                const kg_inventory_value_data = {
+                    id: 10,
+                    name: "KG Inventory Value",
+                    amount: stockAnalytics?.kgInventoryValue,
+                    isCurrency: true,
+                    quantity: 0,
+                    unit: ""
+                }
+                const kg_potential_sales_data = {
+                    id: 11,
+                    name: "KG Sell Value",
+                    amount: stockAnalytics?.kgPotentialSaleValue,
+                    isCurrency: true,
+                    quantity: 0,
+                    unit: ""
+                }
+                const kg_total_stocks_data = {
+                    id: 12,
+                    name: "Total KG Stock",
+                    amount: stockAnalytics?.kgTotalStock,
+                    isCurrency: false,
+                    quantity: 0,
+                    unit: "KG"
+                }
+
+
                 setTotalStocks(total_stock_data);
                 setOutOfStock(out_of_stock_data);
                 setLowStock(low_stock_data);
 
                 setInventoryValue(inventory_value_data);
                 setPotentialSales(potential_sales_data);
-                setTotalStockUnits(totalStocks);
+                setTotalStockUnits(totalStocksData);
+
+                setKgInStock(kg_in_stock_data);
+                setKgOutOfStock(kg_out_of_stock_data);
+                setKgLowStock(kg_low_stock_data);
+                setKgInventoryValue(kg_inventory_value_data);
+                setKgPotentialSales(kg_potential_sales_data);
+                setKgTotalStocks(kg_total_stocks_data);
                 return;
             }
             const total_stock_data = {
@@ -522,7 +628,7 @@ const InventoryContent = () => {
                 quantity: 0,
                 unit: ""
             }
-            const totalStocks = {
+            const totalStocksData = {
                 id: 6,
                 name: "Total Inventory Units",
                 amount: 0,
@@ -530,13 +636,30 @@ const InventoryContent = () => {
                 quantity: 0,
                 unit: "Units"
             }
+
+            const kg_fallback = {
+                id: 0,
+                name: "",
+                amount: 0,
+                isCurrency: false,
+                quantity: 0,
+                unit: ""
+            };
+
             setTotalStocks(total_stock_data);
             setOutOfStock(out_of_stock_data);
             setLowStock(low_stock_data);
 
             setInventoryValue(inventory_value_data);
             setPotentialSales(potential_sales_data);
-            setTotalStockUnits(totalStocks);
+            setTotalStockUnits(totalStocksData);
+
+            setKgInStock({ ...kg_fallback, id: 7, name: "In KG Stock", unit: "KG" });
+            setKgOutOfStock({ ...kg_fallback, id: 8, name: "Out of KG Stock", unit: "KG" });
+            setKgLowStock({ ...kg_fallback, id: 9, name: "Low KG Stock", unit: "KG" });
+            setKgInventoryValue({ ...kg_fallback, id: 10, name: "KG Inventory Value", isCurrency: true });
+            setKgPotentialSales({ ...kg_fallback, id: 11, name: "KG Sell Value", isCurrency: true });
+            setKgTotalStocks({ ...kg_fallback, id: 12, name: "Total KG Stock", unit: "KG" });
         })
     }, [stockAnalytics, isStockAnalytics, stockAnalyticsError]);
 
@@ -548,8 +671,16 @@ const InventoryContent = () => {
 
     useEffect(() => {
         const transactions_data = [lowStock, outOfStock, totalStocks, totalStockUnits, inventoryValue, potentialSales];
+
+        if (kgInStock.amount > 0) transactions_data.push(kgInStock);
+        if (kgOutOfStock.amount > 0) transactions_data.push(kgOutOfStock);
+        if (kgLowStock.amount > 0) transactions_data.push(kgLowStock);
+        if (kgTotalStocks.amount > 0) transactions_data.push(kgTotalStocks);
+        if (kgInventoryValue.amount > 0) transactions_data.push(kgInventoryValue);
+        if (kgPotentialSales.amount > 0) transactions_data.push(kgPotentialSales);
+
         setTransactionList(transactions_data);
-    }, [lowStock, outOfStock, totalStocks, inventoryValue, potentialSales, totalStockUnits]);
+    }, [lowStock, outOfStock, totalStocks, inventoryValue, potentialSales, totalStockUnits, kgInStock, kgOutOfStock, kgLowStock, kgTotalStocks, kgInventoryValue, kgPotentialSales]);
     return (
         <div className="flex flex-col gap-y-5">
             <div className="flex flex-col gap-4 md:flex-row md:justify-between">
@@ -648,7 +779,7 @@ const InventoryContent = () => {
             {listCount === 0 && (
                 <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {transactionList.map((data, index) => (
-                        <Card key={index} data={data} icon={icons[index]} />
+                        <Card key={index} data={data} icon={data.isCurrency ? TbCurrencyNaira : PiShoppingCartSimple} />
                     ))}
                 </div>
             )}
