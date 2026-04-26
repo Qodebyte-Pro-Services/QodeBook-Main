@@ -79,8 +79,6 @@ const InventoryDonutChart = () => {
     const { setTotal } = useStockAnalyticsTotal();
     const { _url_ } = useStockQueryDataAnalytics();
 
-    const [ignoredKeys] = useState<string[]>(["totalstock", "potentialsalevalue", "inventoryvalue"]);
-
     const businessId = useMemo(() => {
         if (typeof window === "undefined") return;
         const selectedBusinessId = sessionStorage.getItem("selectedBusinessId");
@@ -101,19 +99,20 @@ const InventoryDonutChart = () => {
         retry: false
     });
 
-
     const chartData = useMemo<ChartDataLogic>(() => {
         if (isSuccess && !isError && stockAnalytics) {
             const stocks_data = stockAnalytics as StockAnalyticsLogic;
+            const includedKeys = ["inStock", "outOfStock", "lowStock"];
+            
             const entries = Object.entries(stocks_data)
-                .filter(([key]) => !ignoredKeys.includes(`${key.toLowerCase()}`));
+                .filter(([key]) => includedKeys.includes(key));
                 
             const total = entries.reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
             
             return {
                 data: entries.map(([key, value], idx) => ({
                     label: key,
-                    skus: total > 0 ? Math.floor((Number(value) * 360) / total) : 0,
+                    skus: total > 0 ? Math.floor((Number(value) * 360) / total) : (idx === entries.length - 1 && total === 0 ? 360 : 0),
                     value: +value,
                     fill: COLORFILLS[idx] || '#cccccc'
                 })),
@@ -128,8 +127,9 @@ const InventoryDonutChart = () => {
             const stocks_data = stockAnalytics as StockAnalyticsLogic;
             setStockData(stocks_data);
             
+            const includedKeys = ["inStock", "outOfStock", "lowStock"];
             const entries = Object.entries(stocks_data)
-                .filter(([key]) => !ignoredKeys?.includes(`${key.toLowerCase()}`));
+                .filter(([key]) => includedKeys.includes(key));
                 
             const total = entries.reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
             setTotal(total);
