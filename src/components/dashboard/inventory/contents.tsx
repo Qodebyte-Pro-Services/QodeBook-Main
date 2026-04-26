@@ -521,30 +521,30 @@ const InventoryContent = () => {
                     unit: "Units"
                 }
 
-                // KG Data
+            
                 const kg_in_stock_data = {
                     id: 7,
-                    name: "In KG Stock",
+                    name: "KG Units In Stock",
                     amount: stockAnalytics?.kgInStock,
                     isCurrency: false,
                     quantity: 0,
-                    unit: "KG"
+                    unit: "Units"
                 }
                 const kg_out_of_stock_data = {
                     id: 8,
-                    name: "Out of KG Stock",
+                    name: "KG Units Out of Stock",
                     amount: stockAnalytics?.kgOutOfStock,
                     isCurrency: false,
                     quantity: 0,
-                    unit: "KG"
+                    unit: "Units"
                 }
                 const kg_low_stock_data = {
                     id: 9,
-                    name: "Low KG Stock",
+                    name: "KG Units Low in Stock",
                     amount: stockAnalytics?.kgLowStock,
                     isCurrency: false,
                     quantity: 0,
-                    unit: "KG"
+                    unit: "Units"
                 }
                 const kg_inventory_value_data = {
                     id: 10,
@@ -564,7 +564,7 @@ const InventoryContent = () => {
                 }
                 const kg_total_stocks_data = {
                     id: 12,
-                    name: "Total KG Stock",
+                    name: "KG Total Stock",
                     amount: stockAnalytics?.kgTotalStock,
                     isCurrency: false,
                     quantity: 0,
@@ -777,10 +777,14 @@ const InventoryContent = () => {
                 </div>
             </div>
             {listCount === 0 && (
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {transactionList.map((data, index) => (
-                        <Card key={index} data={data} icon={data.isCurrency ? TbCurrencyNaira : PiShoppingCartSimple} />
-                    ))}
+                <div className="w-full relative">
+                    <div className="w-full flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar" style={hiddenScrollbar}>
+                        {transactionList.map((data, index) => (
+                            <div key={index} className="min-w-[280px] sm:min-w-[300px] md:min-w-[30%] lg:min-w-[16%] flex-shrink-0 snap-start">
+                                <Card data={data} icon={data.isCurrency ? TbCurrencyNaira : PiShoppingCartSimple} />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
             <div ref={listContainerRef} className="w-full bg-template-whitesmoke-dim dark:bg-black mx-auto rounded-sm relative z-10 overflow-x-auto" style={hiddenScrollbar}>
