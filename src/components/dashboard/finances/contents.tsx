@@ -399,10 +399,14 @@ const FinanceContents = () => {
                         exit="exit"
                         className={cn(`w-full mt-2 flex flex-col gap-y-5 ${isPhoneView ? 'mb-24' : ''}`)}
                     >
-                        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {overviewData.map((data, index) => (
-                                <OverviewCard key={index} {...data} isIconView={isIconView} />
-                            ))}
+                        <div className="w-full relative">
+                            <div className="w-full flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar" style={hiddenScrollbar}>
+                                {overviewData.map((data, index) => (
+                                    <div key={index} className="min-w-[280px] sm:min-w-[300px] md:min-w-[30%] lg:min-w-[13.5%] flex-shrink-0 snap-start">
+                                        <OverviewCard {...data} isIconView={isIconView} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <motion.div variants={itemVariant} className="w-full bg-white dark:bg-black">
                             <DoubleChart businessId={businessId} />
@@ -423,10 +427,14 @@ const FinanceContents = () => {
                 )}
                 {listCount === 1 && (
                     <>
-                        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                            {expenseCardData?.map((data, index) => (
-                                <OverviewCard key={index} {...data} isIconView={isIconView} />
-                            ))}
+                        <div className="w-full relative">
+                            <div className="w-full flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar" style={hiddenScrollbar}>
+                                {expenseCardData?.map((data, index) => (
+                                    <div key={index} className="min-w-[280px] sm:min-w-[300px] md:min-w-[30%] lg:min-w-[24%] flex-shrink-0 snap-start">
+                                        <OverviewCard {...data} isIconView={isIconView} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[65%_35%] gap-4">
                             <ExpenseContentsGraph />
@@ -460,10 +468,14 @@ const FinanceContents = () => {
                 )}
                 {listCount === 2 && (
                     <>
-                        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                            {budgetCardData?.map((data, index) => (
-                                <OverviewCard key={index} {...data} isIconView={isIconView} />
-                            ))}
+                        <div className="w-full relative">
+                            <div className="w-full flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar" style={hiddenScrollbar}>
+                                {budgetCardData?.map((data, index) => (
+                                    <div key={index} className="min-w-[280px] sm:min-w-[300px] md:min-w-[30%] lg:min-w-[24%] flex-shrink-0 snap-start">
+                                        <OverviewCard {...data} isIconView={isIconView} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[65%_35%] gap-4">
                             <BudgetContentsGraph />

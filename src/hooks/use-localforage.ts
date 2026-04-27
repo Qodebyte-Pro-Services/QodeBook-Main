@@ -38,7 +38,7 @@ export const useLocalForage = () => {
 };
 
 export const useCartStorage = () => {
-    const [cart, setCart] = useState<(ProductVariantResponseObject & {maxQuantity?: number})[]>([]);
+    const [cart, setCart] = useState<(ProductVariantResponseObject & {maxQuantity?: number; unit?: string})[]>([]);
     const [customer, setCustomer] = useState<string>('0');
     const [storeType, setStoreType] = useState<string>('walk_in');
     const [isLoading, setIsLoading] = useState(true);
@@ -85,7 +85,7 @@ export const useCartStorage = () => {
         loadInitialData();
     }, []);
 
-    const updateCart = useCallback(async (newCart: (ProductVariantResponseObject & {maxQuantity?: number})[]) => {
+    const updateCart = useCallback(async (newCart: (ProductVariantResponseObject & {maxQuantity?: number; unit?: string})[]) => {
         setCart(newCart);
         await cartUtils.saveCart(newCart);
     }, []);

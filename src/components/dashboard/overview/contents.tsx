@@ -464,11 +464,17 @@ const OverviewContent = () => {
                     />
                 </div>
             </div>
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {finance_overview_card.map((data, index) => (
-                    <OverviewCard key={index} {...data} isIconView={isIconView} />
-                ))}
-            </div>
+            {listCount === 0 && (
+                <div className="w-full relative">
+                    <div className="w-full flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar" style={hiddenScrollbar}>
+                        {finance_overview_card.map((data, index) => (
+                            <div key={index} className="min-w-[280px] sm:min-w-[300px] md:min-w-[30%] lg:min-w-[19%] flex-shrink-0 snap-start">
+                                <OverviewCard {...data} isIconView={isIconView} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div ref={listContainerRef} className="w-full bg-template-whitesmoke-dim dark:bg-black mx-auto rounded-sm relative z-10 overflow-x-auto" style={hiddenScrollbar}>
                 <div className="min-w-[590px] w-full flex items-center justify-between">
                     {tabGasLists.map((item, index) => (

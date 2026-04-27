@@ -40,7 +40,8 @@ import {
     getProductTaxes,
     getDiscountsByBusinessId,
     getTaxesByBusinessId,
-    getCouponsByBusinessId
+    getCouponsByBusinessId,
+    getUserProducts
 } from "@/api/controllers/get/handler";
 import { useUserBusinesses } from "@/hooks/useControllers";
 import { BreadcrumbLink } from "@/components/ui/breadcrumb";
@@ -181,6 +182,15 @@ export const usePOSLogic = () => {
         refetchOnWindowFocus: false,
     });
 
+    const { data: userProductsData } = useQuery({
+        queryKey: ["get-products", businessId],
+        queryFn: () => getUserProducts(Number(businessId)),
+        enabled: businessId > 0,
+        refetchOnWindowFocus: false,
+    });
+
+    const userProducts = useMemo(() => userProductsData?.products || [], [userProductsData]);
+
     // Caching logic parity with original SalesContent
     const { data: productsWithDiscounts } = useQuery({
         queryKey: ["get-products-discounts", businessId],
@@ -215,6 +225,21 @@ export const usePOSLogic = () => {
     const productswithdiscounts = useMemo(() => productsWithDiscounts?.products_with_discounts || [], [productsWithDiscounts]);
     const productwithtaxes = useMemo(() => productsWithTaxes?.products_with_taxes || [], [productsWithTaxes]);
     const productwithcoupons = useMemo(() => productsWithCoupons?.products_with_coupons || [], [productsWithCoupons]);
+
+    // Enrich cart items with units from products if missing
+    useEffect(() => {
+        if (userProducts.length > 0 && selectedVariants.length > 0) {
+            const needsUpdate = selectedVariants.some(v => !v.unit);
+            if (needsUpdate) {
+                const updated = selectedVariants.map(v => {
+                    if (v.unit) return v;
+                    const product = userProducts.find((p: any) => p.id === v.product_id);
+                    return { ...v, unit: product?.unit };
+                });
+                setSelectedVariants(updated);
+            }
+        }
+    }, [userProducts, selectedVariants, setSelectedVariants]);
 
     const calculateOrderTotals = useCallback(() => {
         const subtotal = selectedVariants.reduce((sum, variant) => {
@@ -340,7 +365,8 @@ export const usePOSLogic = () => {
                 toast.error("This product is out of stock");
                 return;
             }
-            const newCart = [...selectedVariants, { ...variant, quantity: 1, maxQuantity: variant.quantity }];
+            const product = userProducts.find((p: any) => p.id === variant.product_id);
+            const newCart = [...selectedVariants, { ...variant, quantity: 1, maxQuantity: variant.quantity, unit: product?.unit }];
             await setSelectedVariants(newCart);
         }
     };

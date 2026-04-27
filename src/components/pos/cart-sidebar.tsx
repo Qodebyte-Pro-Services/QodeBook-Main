@@ -103,7 +103,7 @@ const SettingsController = ({
 }
 
 interface CartSidebarProps {
-    items: (ProductVariantResponseObject & { quantity: number; maxQuantity: number })[];
+    items: (ProductVariantResponseObject & { quantity: number; maxQuantity?: number; unit?: string })[];
     customers: CustomerResponse[];
     selectedCustomer: string;
     storeType: string;
@@ -249,7 +249,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
                                         <div className="flex items-center gap-2">
                                             <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
                                                 <button
-                                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.maxQuantity)}
+                                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.maxQuantity || 0)}
                                                     className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
                                                     disabled={item.quantity <= 1}
                                                 >
@@ -257,20 +257,22 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
                                                 </button>
                                                 <span className="w-10 text-center text-sm font-black text-gray-900">{item.quantity}</span>
                                                 <button
-                                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.maxQuantity)}
+                                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.maxQuantity || 0)}
                                                     className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
-                                                    disabled={item.quantity >= item.maxQuantity}
+                                                    disabled={item.quantity >= (item.maxQuantity || 0)}
                                                 >
                                                     <PiPlusBold size={14} />
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => onCalculatorUpdate(item.id, item.quantity, item.maxQuantity)}
-                                                className="w-8 h-8 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-all"
-                                                title="Quantity Calculator"
-                                            >
-                                                <CalculatorIcon size={16} />
-                                            </button>
+                                            {item.unit?.toLowerCase() === 'kg' && (
+                                                <button
+                                                    onClick={() => onCalculatorUpdate(item.id, item.quantity, item.maxQuantity || 0)}
+                                                    className="w-8 h-8 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-all"
+                                                    title="Quantity Calculator"
+                                                >
+                                                    <CalculatorIcon size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-black text-gray-900 tracking-tight">
