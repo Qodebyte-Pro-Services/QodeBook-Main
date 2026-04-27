@@ -19,6 +19,7 @@ import PosStaffSalesTable from "../dashboard/tables/pos-staff-sale-table";
 import PosStaffPendingSaleTable from "../dashboard/tables/pos-staff-pending-sale-table";
 import Cookies from "js-cookie";
 import { useStaffBusinessData, useUserBusinesses } from "@/hooks/useControllers";
+import QuantityCalculator from "../dashboard/sales/ui/quantity-calculator";
 // No icons needed for the completion modal anymore
 
 const POSContainer: React.FC = () => {
@@ -28,6 +29,14 @@ const POSContainer: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isDraftsOpen, setIsDraftsOpen] = useState(false);
+
+    const [isQuantityCalculatorOpen, setIsQuantityCalculatorOpen] = useState<boolean>(false);
+    const [calculatorContext, setCalculatorContext] = useState<{
+        variantId: number;
+        currentQuantity: number;
+        maxQuantity: number;
+        unitPrice: number;
+    } | null>(null);
 
     const { view } = useViewTransaction();
 
@@ -59,6 +68,17 @@ const POSContainer: React.FC = () => {
         if (typeof window === "undefined") return false;
         return Cookies.get("authActiveUser")?.toLowerCase() === "staff";
     }, []);
+
+    const handleCalculatorUpdate = (variantId: number, val: number, max: number) => {
+        const target = selectedVariants.find(v => v.id === variantId);
+        setCalculatorContext({
+            variantId,
+            currentQuantity: Math.max(1, val || 1),
+            maxQuantity: max,
+            unitPrice: Number(target?.selling_price || 0)
+        });
+        setIsQuantityCalculatorOpen(true);
+    };
 
     const { staffdata, isStaffSuccess, isStaffError } = useStaffBusinessData(isStaff, `${businessId}`);
     const { data: userBusinessesData, isSuccess: userBusinessSuccess, isError: userBusinessError } = useUserBusinesses();
@@ -123,6 +143,7 @@ const POSContainer: React.FC = () => {
                                 isSettingsOpen={isSettingsOpen}
                                 setIsSettingsOpen={setIsSettingsOpen}
                                 onUpdateQuantity={handlers.handleQuantityChange}
+                                onCalculatorUpdate={handleCalculatorUpdate}
                                 onRemoveItem={handlers.handleRemoveVariant}
                                 onSetCustomer={handlers.setSelectedCustomer}
                                 onSetStoreType={handlers.setStoreType}
@@ -156,6 +177,7 @@ const POSContainer: React.FC = () => {
                                     isSettingsOpen={isSettingsOpen}
                                     setIsSettingsOpen={setIsSettingsOpen}
                                     onUpdateQuantity={handlers.handleQuantityChange}
+                                    onCalculatorUpdate={handleCalculatorUpdate}
                                     onRemoveItem={handlers.handleRemoveVariant}
                                     onSetCustomer={handlers.setSelectedCustomer}
                                     onSetStoreType={handlers.setStoreType}
@@ -263,6 +285,20 @@ const POSContainer: React.FC = () => {
                         onLoadDraft={handlers.handleDraftSelected}
                         onDeleteDraft={handlers.handleDeleteDraft}
                     />
+
+                    {isQuantityCalculatorOpen && calculatorContext && (
+                        <QuantityCalculator
+                            handleClose={() => setIsQuantityCalculatorOpen(false)}
+                            unit={calculatorContext.unitPrice}
+                            price={calculatorContext.unitPrice}
+                            maxQuantity={calculatorContext.maxQuantity}
+                            productId={calculatorContext.variantId}
+                            currentQuantity={calculatorContext.currentQuantity}
+                            onApply={async (newQty: number) => {
+                                await handlers.handleQuantityChange(calculatorContext.variantId, newQty, calculatorContext.maxQuantity);
+                            }}
+                        />
+                    )}
                 </motion.div>
             ) : view === "sales" ? (
                 <PosStaffSalesTable key="sales-history-view" />

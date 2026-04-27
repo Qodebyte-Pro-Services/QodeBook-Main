@@ -25,7 +25,7 @@ import { ProductVariantResponseObject, CustomerResponse } from "@/models/types/s
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
-import { Settings2 } from "lucide-react";
+import { Settings2, CalculatorIcon } from "lucide-react";
 
 interface SettingsControllerProps {
     selectedCustomer: string;
@@ -115,6 +115,7 @@ interface CartSidebarProps {
     isSettingsOpen: boolean;
     setIsSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     onUpdateQuantity: (id: number, qty: number, max: number) => void;
+    onCalculatorUpdate: (id: number, val: number, max: number) => void;
     onRemoveItem: (id: number) => void;
     onSetCustomer: (id: string) => void;
     onSetStoreType: (type: string) => void;
@@ -138,6 +139,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
     isSettingsOpen,
     setIsSettingsOpen,
     onUpdateQuantity,
+    onCalculatorUpdate,
     onRemoveItem,
     onSetCustomer,
     onSetStoreType,
@@ -244,21 +246,30 @@ const CartSidebar: React.FC<CartSidebarProps> = ({
                                     </div>
 
                                     <div className="flex items-center justify-between mt-3">
-                                        <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
+                                                <button
+                                                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.maxQuantity)}
+                                                    className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
+                                                    disabled={item.quantity <= 1}
+                                                >
+                                                    <PiMinusBold size={14} />
+                                                </button>
+                                                <span className="w-10 text-center text-sm font-black text-gray-900">{item.quantity}</span>
+                                                <button
+                                                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.maxQuantity)}
+                                                    className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
+                                                    disabled={item.quantity >= item.maxQuantity}
+                                                >
+                                                    <PiPlusBold size={14} />
+                                                </button>
+                                            </div>
                                             <button
-                                                onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.maxQuantity)}
-                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
-                                                disabled={item.quantity <= 1}
+                                                onClick={() => onCalculatorUpdate(item.id, item.quantity, item.maxQuantity)}
+                                                className="w-8 h-8 flex items-center justify-center text-green-500 hover:bg-green-50 rounded-lg transition-all"
+                                                title="Quantity Calculator"
                                             >
-                                                <PiMinusBold size={14} />
-                                            </button>
-                                            <span className="w-10 text-center text-sm font-black text-gray-900">{item.quantity}</span>
-                                            <button
-                                                onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.maxQuantity)}
-                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-template-primary hover:bg-white rounded-lg transition-all shadow-sm disabled:opacity-30"
-                                                disabled={item.quantity >= item.maxQuantity}
-                                            >
-                                                <PiPlusBold size={14} />
+                                                <CalculatorIcon size={16} />
                                             </button>
                                         </div>
                                         <div className="text-right">
