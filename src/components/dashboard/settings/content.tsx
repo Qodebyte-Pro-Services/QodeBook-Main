@@ -177,16 +177,16 @@ const SettingContents = () => {
                 {listCount === 1 && (
                     <BranchSettings sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )}
-                {listCount === 2 && (
+                {/* {listCount === 2 && (
                     <PermissionSettings created_by={`${user_details.email}`} sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
-                )}
-                {listCount === 3 && (
+                )} */}
+                {listCount === 2 && (
                     <BusinessSettings sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )}
-                {listCount === 4 && (
+                {listCount === 3 && (
                     <NotificationSettings sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )}
-                {listCount === 5 && (
+                {listCount === 4 && (
                     <motion.div
                         key="login-attempts"
                         variants={sectionVariant}

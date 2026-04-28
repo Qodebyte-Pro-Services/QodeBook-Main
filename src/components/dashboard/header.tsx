@@ -347,7 +347,7 @@ const DashboardHeader = () => {
                                 </Button>
                             </DropdownMenuTrigger>
 
-                            <DropdownMenuContent className="w-64 p-2 bg-white dark:bg-black rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 mt-2">
+                            {/* <DropdownMenuContent className="w-64 p-2 bg-white dark:bg-black rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 mt-2">
                                 <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg mb-2">
                                     <DropdownMenuLabel className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                                         <Building2 className="h-4 w-4 text-green-600" />
@@ -366,7 +366,7 @@ const DashboardHeader = () => {
                                         </DropdownMenuRadioItem>
                                     ))}
                                 </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
+                            </DropdownMenuContent> */}
                         </DropdownMenu>
                         <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 rounded-xl shadow-sm">
                             <div className="relative">
