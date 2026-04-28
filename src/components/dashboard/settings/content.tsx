@@ -174,12 +174,12 @@ const SettingContents = () => {
                 {listCount === 0 && (
                     <AdminAccountSettings user_details={Object.keys(user_details).length > 0 ? user_details : staff_details} user_loading={userLoading} sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )}
-                {listCount === 1 && (
+                {/* {listCount === 1 && (
                     <BranchSettings sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
-                )}
-                {/* {listCount === 2 && (
-                    <PermissionSettings created_by={`${user_details.email}`} sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )} */}
+                {listCount === 1 && (
+                    <PermissionSettings created_by={`${user_details.email}`} sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
+                )}
                 {listCount === 2 && (
                     <BusinessSettings sectionVariant={sectionVariant} isPhoneView={isPhoneView} />
                 )}
