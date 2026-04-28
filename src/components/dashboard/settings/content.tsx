@@ -34,7 +34,9 @@ const SettingContents = () => {
     const [listCount, setlistCount] = useState<number>(0);
     const [showBusinessModal, setShowBusinessModal] = useState<boolean>(false);
 
-    const [settingLists] = useState<string[]>(["Profile", "Branches", "Permissions", "Business", "Notifications", "System"]);
+   // const [settingLists] = useState<string[]>(["Profile", "Branches", "Permissions", "Business", "Notifications", "System"]);
+
+        const [settingLists] = useState<string[]>(["Profile", "Permissions", "Business", "Notifications", "System"]);
 
     const [indicatorBar, setIndicatorBar] = useState<{ left: number; width: number }>({ left: 0, width: 0 || 90 });
 
