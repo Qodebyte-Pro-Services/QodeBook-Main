@@ -456,21 +456,21 @@ export const usePOSLogic = () => {
         setShowOrderConfirmation(true);
     };
 
-    const handleConfirmOrder = async (paymentMethod: string | string[] | Array<[string, number]>) => {
+    const handleConfirmOrder = async (paymentOption: string | string[] | Array<[string, number]> | any) => {
         if (!pendingOrderData) return;
 
-        const orderDataWithPayment = addPaymentToOrder(pendingOrderData, paymentMethod, total);
+        const orderDataWithPayment = addPaymentToOrder(pendingOrderData, paymentOption, total);
 
         if (isOnlineState) {
             try {
                 const result = await submitOfflineOrder(orderDataWithPayment) as { success: boolean; _data: FallbackSalesResponse };
                 if (result?.success) {
                     toast.success("Order created successfully!");
-                    
+
                     for (const item of selectedVariants) {
                         await productCache.decrementVariantStock(businessId.toString(), item.id, item.quantity);
                     }
-                    
+
                     queryClient.invalidateQueries({ queryKey: ["get-business-variants", businessId] });
                     setInvoiceData(result._data);
                     await clearCart();
@@ -486,11 +486,11 @@ export const usePOSLogic = () => {
             const result = await createOrder(orderDataWithPayment);
             if (result.success) {
                 toast.info("Order saved offline");
-                
+
                 for (const item of selectedVariants) {
                     await productCache.decrementVariantStock(businessId.toString(), item.id, item.quantity);
                 }
-                
+
                 const customer = (customers?.customers as any[])?.find((c: any) => c.id == selectedCustomer);
                 setOfflineInvoiceData({
                     ...result.data,
@@ -498,7 +498,7 @@ export const usePOSLogic = () => {
                     customer_email: customer?.email || "N/A",
                     customer_phone: customer?.phone || "N/A"
                 });
-                
+
                 await clearCart();
                 setShowOrderConfirmation(false);
                 setPendingOrderData(null);

@@ -3,6 +3,22 @@
 import axiosInstance from "@/lib/axios";
 import { FallbackSalesResponse } from "@/models/types/shared/handlers-type";
 
+export interface InstallmentPlan {
+    number_of_payments: number;
+    payment_frequency: 'daily' | 'weekly' | 'monthly';
+    down_payment: number;
+    remaining_balance: number;
+    start_date: string;
+    notes?: string;
+}
+
+export interface CreditDetails {
+    credit_type: 'full_credit' | 'partial_credit' | 'installment_credit';
+    amount_paid: number;
+    balance: number;
+    payment_schedule?: 'immediate' | 'weekly' | 'monthly' | 'custom';
+}
+
 export interface OrderSubmissionData {
     business_id: number;
     branch_id: number;
@@ -28,6 +44,9 @@ export interface OrderSubmissionData {
     taxes?: number;
     note?: string;
     order_type: string;
+    sale_type?: 'regular' | 'installment' | 'credit';
+    installment_plan?: InstallmentPlan;
+    credit_details?: CreditDetails;
     payments: Array<{
         method: string;
         amount: number;
@@ -167,27 +186,83 @@ export const submitOrder = async (orderData: OrderSubmissionData): Promise<boole
     }
 };
 
+export interface PaymentMethodOption {
+    method: string;
+    amount?: number;
+    downPayment?: number;
+    installmentPlan?: InstallmentPlan;
+    creditDetails?: CreditDetails;
+}
+
 export const addPaymentToOrder = (
     orderData: OrderSubmissionData, 
-    paymentMethod: string | string[] | Array<[string, number]>, 
+    paymentOption: string | string[] | Array<[string, number]> | PaymentMethodOption,
     totalAmount: number
 ): OrderSubmissionData => {
-    const payments = Array.isArray(paymentMethod) 
-        ? paymentMethod.map(method => ({
-            method: method[0],
-            amount: method[1] as number,
-            reference: `${method[0]}-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-        }))
-        : [{
-            method: paymentMethod,
-            amount: totalAmount,
-            reference: `${paymentMethod}-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-        }];
+    let payments: Array<{ method: string; amount: number; reference: string }> = [];
+    let saleType: 'regular' | 'installment' | 'credit' = 'regular';
+    let installmentPlan: InstallmentPlan | undefined;
+    let creditDetails: CreditDetails | undefined;
 
-    return {
+    // Handle PaymentMethodOption object
+    if (typeof paymentOption === 'object' && !Array.isArray(paymentOption) && 'method' in paymentOption) {
+        const option = paymentOption as PaymentMethodOption;
+        
+        if (option.method === 'installment' && option.installmentPlan) {
+            saleType = 'installment';
+            installmentPlan = option.installmentPlan;
+            payments = [{
+                method: 'installment',
+                amount: option.downPayment || 0,
+                reference: `installment-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+            }];
+        } else if (option.method === 'credit' && option.creditDetails) {
+            saleType = 'credit';
+            creditDetails = option.creditDetails;
+            payments = [{
+                method: 'credit',
+                amount: creditDetails.amount_paid,
+                reference: `credit-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+            }];
+        } else {
+            // Regular payment with a specific method
+            payments = [{
+                method: option.method,
+                amount: option.amount || totalAmount,
+                reference: `${option.method}-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+            }];
+        }
+    } else if (Array.isArray(paymentOption)) {
+        // Handle multiple payment methods
+        payments = (paymentOption as Array<[string, number]>).map(method => ({
+            method: method[0],
+            amount: method[1],
+            reference: `${method[0]}-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+        }));
+    } else {
+        // Handle simple string payment method
+        payments = [{
+            method: paymentOption as string,
+            amount: totalAmount,
+            reference: `${paymentOption}-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+        }];
+    }
+
+    const result: OrderSubmissionData = {
         ...orderData,
+        sale_type: saleType,
         payments
     };
+
+    if (installmentPlan) {
+        result.installment_plan = installmentPlan;
+    }
+
+    if (creditDetails) {
+        result.credit_details = creditDetails;
+    }
+
+    return result;
 };
 
 export const submitOfflineOrder = async (orderData: any): Promise<({success: boolean; _data: FallbackSalesResponse} | boolean)> => {
