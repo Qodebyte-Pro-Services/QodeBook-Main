@@ -41,7 +41,7 @@ import { DraftSelectionModal } from "./draft-selection-modal";
 import PendingOrdersModal from "./pending-orders-modal";
 import SalesInvoice from "./invoice/SalesInvoice";
 import type { SalesSchema } from "@/store/data/sales-table-data";
-import { submitOfflineOrder, prepareOrderData, addPaymentToOrder, SelectedDiscount, SelectedTax, SelectedCoupon, OrderSubmissionData } from "@/api/controllers/post/orders";
+import { submitOfflineOrder, prepareOrderData, addPaymentToOrder, SelectedDiscount, SelectedTax, SelectedCoupon, OrderSubmissionData, PaymentMethodOption } from "@/api/controllers/post/orders";
 import OrderInvoice from "./invoice/OrderInvoice";
 import QuantityCalculator from "./ui/quantity-calculator";
 import { SalesOverviewGraph } from "../charts/sales-overview-line-graph";
@@ -746,7 +746,7 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
         setShowOrderConfirmation(true);
     }
 
-    const handleConfirmOrder = async (paymentMethod: string | string[] | Array<[string, number]>) => {
+    const handleConfirmOrder = async (paymentMethod: string | string[] | Array<[string, number]> | PaymentMethodOption) => {
         if (!pendingOrderData) return;
 
         // Calculate total amount considering discounts and taxes
