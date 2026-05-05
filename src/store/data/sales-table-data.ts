@@ -34,3 +34,59 @@ export const saleTableData = z.object({
 });
 
 export type SalesSchema = z.infer<typeof saleTableData>;
+
+export const creditAccountSchema = z.object({
+    id: z.number(),
+    business_id: z.number(),
+    order_id: z.number(),
+    customer_id: z.any(),
+    amount_paid: z.string(),
+    balance: z.string(),
+    total_amount: z.string(),
+    status: z.string(),
+    credit_type: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    order_type: z.string(),
+    customer_name: z.string().nullable(),
+});
+
+export type CreditAccountType = z.infer<typeof creditAccountSchema>;
+
+export const installmentPaymentSchema = z.object({
+    id: z.number(),
+    installment_plan_id: z.number(),
+    payment_number: z.number(),
+    amount: z.string(),
+    due_date: z.string(),
+    status: z.string(),
+    paid_at: z.string().nullable(),
+    method: z.string().nullable(),
+});
+
+export type InstallmentPaymentType = z.infer<typeof installmentPaymentSchema>;
+
+export const installmentPlanSchema = z.object({
+    id: z.number(),
+    business_id: z.number(),
+    order_id: z.number(),
+    customer_id: z.any(),
+    total_amount: z.string(),
+    down_payment: z.string(),
+    remaining_balance: z.string(),
+    number_of_payments: z.number(),
+    payment_frequency: z.string(),
+    status: z.string(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    order_type: z.string(),
+    customer_name: z.string().nullable(),
+    customer_phone: z.string().optional(),
+    customer_email: z.string().optional(),
+    branch_name: z.string().optional(),
+    order_total: z.string().optional(),
+    order_status: z.string().optional(),
+    payments: z.array(installmentPaymentSchema).optional(),
+});
+
+export type InstallmentPlanType = z.infer<typeof installmentPlanSchema>;

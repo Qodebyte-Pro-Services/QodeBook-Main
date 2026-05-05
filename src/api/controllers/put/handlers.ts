@@ -345,4 +345,20 @@ const markAllNotificationsAsRead = async (businessId: number) => {
     }
 }
 
-export {updateProductVariants, updateCategory, updateAttribute, updateProductByIdHandler, updateTaxes, updateDiscounts, updateCoupons, updateStockSupplyOrder, updateStaffCreds, updateStaffShiftById, updateStaffSubcharge, updateExpenseStatus, updateExpensePaymentStatus, updateBudgetHandler, updateExpenseCategory, updateStaffBusinessSettings, updateBudgetStatus, updateAuthUserProfile, markNotificationAsRead, markAllNotificationsAsRead};
+const settleCreditAccount = async ({ id, businessId, data }: { id: string; businessId: number; data?: { method: string; reference: string } }) => {
+    try {
+        const response = await axiosInstance.patch(`/api/sales/credit-accounts/${id}/settle-installment`, data || {}, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to settle credit account");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Settle Credit Account");
+    }
+}
+
+export {updateProductVariants, updateCategory, updateAttribute, updateProductByIdHandler, updateTaxes, updateDiscounts, updateCoupons, updateStockSupplyOrder, updateStaffCreds, updateStaffShiftById, updateStaffSubcharge, updateExpenseStatus, updateExpensePaymentStatus, updateBudgetHandler, updateExpenseCategory, updateStaffBusinessSettings, updateBudgetStatus, updateAuthUserProfile, markNotificationAsRead, markAllNotificationsAsRead, settleCreditAccount};

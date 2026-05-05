@@ -1204,6 +1204,102 @@ const getNotifications = async (businessId: number) => {
     }
 }
 
+const getBusinessCreditAccounts = async ({businessId}: {businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/credit-accounts/business/${businessId}`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch credit accounts");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Credit Accounts");
+    }
+}
+
+const getCreditAccount = async ({id, businessId}: {id: string; businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/credit-accounts/${id}`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch credit account details");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Credit Account Details");
+    }
+}
+
+const getBusinessInstallmentPlans = async ({businessId}: {businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/installment-plans/business/${businessId}`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch installment plans");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Installment Plans");
+    }
+}
+
+const getInstallmentPlan = async ({planId, businessId}: {planId: string; businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/installment-plans/${planId}`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch installment plan details");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Installment Plan Details");
+    }
+}
+
+const getInstallmentPayments = async ({planId, businessId}: {planId: string; businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/installment-plans/${planId}/payments`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch installment payments");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Installment Payments");
+    }
+}
+
+const getInstallmentPayment = async ({paymentId, businessId}: {paymentId: string; businessId: number}) => {
+    try {
+        const response = await axiosInstance.get(`/api/sales/installment-payments/${paymentId}`, {
+            headers: {
+                "x-business-id": businessId
+            }
+        });
+        return response.data;
+    }catch(err) {
+        if (isAxiosError(err)) {
+            throw new Error(err?.response?.data?.message ?? err?.message ?? "Error Occurred while trying to fetch installment payment details");
+        }
+        throw new Error("Unexpected Error Occurred While Trying To Fetch Installment Payment Details");
+    }
+}
+
 export {
     userBusinessesHandler,
     userBusinessHandler,
@@ -1274,5 +1370,11 @@ export {
     getNotificationsCount,
     getStaffActiveLogs,
     getStaffBusinessData,
-    getViewStaffBusinessSettings
+    getViewStaffBusinessSettings,
+    getBusinessCreditAccounts,
+    getCreditAccount,
+    getBusinessInstallmentPlans,
+    getInstallmentPlan,
+    getInstallmentPayments,
+    getInstallmentPayment,
 };

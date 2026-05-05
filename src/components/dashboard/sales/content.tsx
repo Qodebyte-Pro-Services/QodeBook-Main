@@ -7,7 +7,7 @@ import { useCustomStyles, useDashboardContextHooks } from "@/hooks";
 import { SaleOverviewCard, TabList } from "..";
 import { SalesPieChart } from "../charts";
 import { Card as CardWrapper, CardTitle, CardHeader, CardDescription, CardContent } from "@/components/ui/card";
-import { LoginAttemptsTable, SalesTable } from "../tables";
+import { LoginAttemptsTable, SalesTable, CreditSalesTable, InstallmentPlansTable } from "../tables";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { NotificationCard } from "../ui";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -70,7 +70,7 @@ type TopSellingProductLogic = TopsellingProductCurrentLogic & {
 const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<React.SetStateAction<boolean>> }) => {
     const [activeTab, setActiveTab] = useState<number>(-1);
     const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
-    const [tabGasLists, setTabGasLists] = useState<Array<string>>(["Overview", "POS", "Transactions", "Reports"]);
+    const [tabGasLists, setTabGasLists] = useState<Array<string>>(["Overview", "POS", "Transactions", "Reports", "Credit Sales", "Installment Sales"]);
     const [listCount, setlistCount] = useState<number>(0);
     const [showBusinessModal, setShowBusinessModal] = useState<boolean>(false);
 
@@ -559,15 +559,18 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
                 }
                 return prev;
             });
-            return;
+        } else {
+            setTabGasLists(prev => {
+                return prev.filter(item => item?.toLowerCase() !== "offline transaction");
+            });
         }
-        setTabGasLists(prev => {
-            if (prev?.some(item => (item?.toLowerCase() === "offline transaction" || item?.toLowerCase()?.includes("offline")))) {
-                return prev?.slice(0, -1);
-            }
-            return prev;
-        });
     }, [pendingOrders]);
+
+    useEffect(() => {
+        if (listCount >= tabGasLists.length) {
+            setlistCount(0);
+        }
+    }, [tabGasLists, listCount]);
 
     const isAvalidJson = (str: string) => {
         try {
@@ -580,7 +583,7 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
 
     useEffect(() => {
         if (typeof window === "undefined") return;
-        const required_permissions = ["view_analytics", "view_sales_overview", "view_sales_report"];
+        const required_permissions = ["view_analytics", "view_sales_overview", "view_sales_report", "manage_orders"];
         const staff_permissions = Cookies.get("staff_roles") || JSON.stringify({ role: "user", permissions: [] });
         const isStaff = Cookies.get("authActiveUser") || "user";
         const has_required_permissions = isAvalidJson(staff_permissions) && required_permissions?.every((permission: string) => (JSON.parse(staff_permissions) as { role: string; permissions: Array<string> })?.permissions.includes(permission));
@@ -2685,7 +2688,31 @@ const SalesContent = ({ onPOSStateChange }: { onPOSStateChange?: React.Dispatch<
                             <SalesReport />
                         </motion.div>
                     )}
-                    {listCount === 4 && (
+                    {tabGasLists[listCount] === "Credit Sales" && (
+                        <motion.div
+                            key="credit-sales"
+                            variants={sectionVariant}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className={cn(`w-full mt-2 ${isPhoneView ? 'mb-24' : ''}`)}
+                        >
+                            <CreditSalesTable />
+                        </motion.div>
+                    )}
+                    {tabGasLists[listCount] === "Installment Sales" && (
+                        <motion.div
+                            key="installment-sales"
+                            variants={sectionVariant}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className={cn(`w-full mt-2 ${isPhoneView ? 'mb-24' : ''}`)}
+                        >
+                            <InstallmentPlansTable />
+                        </motion.div>
+                    )}
+                    {tabGasLists[listCount] === "Offline Transaction" && (
                         <motion.div
                             key="offline-orders"
                             variants={sectionVariant}
